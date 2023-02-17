@@ -1,0 +1,4 @@
+prompt_toolkit==3.0.36
+pyee==9.0.4
+rich==13.3.1
+ranger-fm==1.9.3
