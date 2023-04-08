@@ -16,11 +16,17 @@ HardBrake is a wrapper around [HandBrake CLI](https://github.com/HandBrake/HandB
 
 ## Installation
 
-Will Add
+Install via pip:
+
+```
+pip install hardbrake
+```
 
 ## Usage
 
-Will Add
+```
+hardbrake
+```
 
 ## License
 
