@@ -1,6 +1,6 @@
-import event
-import loader
-import utils
+import src.event as event
+import src.loader as loader
+import src.utils as utils
 from rich import print
 from rich.panel import Panel
 from rich.syntax import Syntax

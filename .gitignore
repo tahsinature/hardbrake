@@ -175,3 +175,6 @@ poetry.toml
 
 .DS_Store
 .vscode/
+
+bin
+share
