@@ -48,5 +48,3 @@ def verify_installation(program_name: str):
   if len(output_text) == 0 or len(stderr_text) > 0:
     raise Exception("HandBrakeCLI is not installed",
                     stderr_text or output_text or "No output")
-
-  print("HandBrakeCLI is installed")
