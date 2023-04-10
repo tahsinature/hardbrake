@@ -1,5 +1,6 @@
 import hashlib
 import subprocess
+import src.prompts as prompts
 
 
 def hash(cmd: str) -> str:
@@ -37,6 +38,15 @@ def get_presets():
       preset_map[category].append(line.strip().strip("\t"))
 
   return preset_map
+
+
+def select_preset():
+  categories = get_presets()
+  category = prompts.ask_autocomplete(choices=list(categories.keys()), question="Select a category")
+  presets = categories[category]
+  preset = prompts.ask_autocomplete(choices=presets, question="Select a preset")
+
+  return preset
 
 
 def verify_installation(program_name: str):
