@@ -23,7 +23,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'hardbrake = src.app:main'
+            'hardbrake = src.app:cli'
         ]
     }
 )
