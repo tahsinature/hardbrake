@@ -1,5 +1,5 @@
 start:
-	python3 src/app.py
+	python3 run.py
 
 venv:
 	python3 -m venv venv

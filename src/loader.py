@@ -28,6 +28,7 @@ class Loader:
     self.check_if_started()
     self.progress.stop()
     self.progress.__exit__(None, None, None)
+    self.started = False
 
 
 loader = Loader()

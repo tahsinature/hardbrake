@@ -1,6 +1,7 @@
 import hashlib
 import subprocess
 import src.prompts as prompts
+import src.file as file
 
 
 def hash(cmd: str) -> str:
@@ -11,6 +12,7 @@ def get_encode_cmd(input_file_path: str, preset: str):
   file_name_without_extension = input_file_path.rsplit(".", 1)[0]
   output_file_path = f"{file_name_without_extension}_HandBraked-{preset}.mp4"
   cmd = f"HandBrakeCLI -i '{input_file_path}' -o '{output_file_path}' -Z '{preset}'"
+  file.manager.add_file(output_file_path)
 
   return cmd
 
