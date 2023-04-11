@@ -7,12 +7,15 @@ output_path = os.path.join(tempfile.gettempdir(), "OUTFILE")
 cmd = f"ranger --choosefiles={output_path}"
 
 
-def select_files():
+def select_files() -> list[str]:
   completed_process = subprocess.run(cmd, shell=True)
   if completed_process.returncode != 0:
     raise Exception("Something went wrong while selecting files")
 
   allowed_extensions = ["mp4", "mkv", "avi", "mov", "m4v", "flv", "wmv"]
+
+  if not os.path.exists(output_path):
+    return []
 
   with open(output_path, "r") as f:
     data = f.read()
@@ -29,7 +32,7 @@ def select_files():
 class _Manager:
   files: list[str] = []
 
-  def add_file(self, file_path):
+  def add_file(self, file_path: str) -> None:
     """Add a file to the list that has been interacted with"""
     self.files.append(file_path)
 
