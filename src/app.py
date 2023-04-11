@@ -1,20 +1,14 @@
-from rich import traceback, print
-
-import src.file as file
-import src.prompts as prompts
-import src.manager as manager
-import src.utils as utils
 import src.logger as logger
+import src.utils as utils
+import src.manager as manager
+import src.prompts as prompts
+import src.file as file
+from rich import traceback, print
 
 traceback.install()
 
 
-# files = file.select_files()
-# files = ['/Users/tahsin/Desktop/hb-play/sample-5s.mp4', '/Users/tahsin/Desktop/hb-play/sample-10s.mp4',
-#          '/Users/tahsin/Desktop/hb-play/sample-15s.mp4', '/Users/tahsin/Desktop/hb-play/sample-20s.mp4', '/Users/tahsin/Desktop/hb-play/sample-30s.mp4']
-
-def cli():
-
+def main():
   try:
     try:
       utils.verify_installation("HandBrakeCLI")
@@ -25,6 +19,10 @@ def cli():
 
     happy = False
     original_files = file.select_files()
+
+    if len(original_files) == 0:
+      logger.error("No files selected")
+      return
 
     for file_path in original_files:
       file.manager.add_file(file_path)
@@ -45,12 +43,13 @@ def cli():
 
 
 def test():
+  print("testing...")
 
-  file.manager.add_file('/Users/tahsin/Desktop/demvid/a.txt')
-  file.manager.add_file('/Users/tahsin/Desktop/demvid/b.txt')
-  file.manager.add_file('/Users/tahsin/Desktop/demvid/c.txt')
-  file.manager.add_file('/Users/tahsin/Desktop/demvid/foo.txt')
+  # file.manager.add_file('/Users/tahsin/Desktop/demvid/a.txt')
+  # file.manager.add_file('/Users/tahsin/Desktop/demvid/b.txt')
+  # file.manager.add_file('/Users/tahsin/Desktop/demvid/c.txt')
+  # file.manager.add_file('/Users/tahsin/Desktop/demvid/foo.txt')
 
-  file.manager.delete_file()
+  # file.manager.delete_file()
   # pass
   # print('here')
