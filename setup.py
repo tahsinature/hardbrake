@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+import version
 
 
 with open("requirements.txt", "r") as f:
@@ -7,7 +8,7 @@ with open("requirements.txt", "r") as f:
 
 setup(
     name="hardbrake",
-    version="0.0.7",
+    version=version.current,
     author="Tahsin",
     author_email="hello@tahsin.us",
     description="A wrapper around HandBrake CLI for encoding multiple files with ease.",
@@ -16,8 +17,8 @@ setup(
     data_files=[("", ["requirements.txt"])],
     entry_points={
         'console_scripts': [
-            'hardbrake = src.app:cli',
-            'hb = src.app:cli'
+            'hardbrake = run:exec',
+            'hb = run:exec'
         ]
     }
 )
