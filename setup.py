@@ -7,7 +7,7 @@ with open("requirements.txt", "r") as f:
 
 setup(
     name="hardbrake",
-    version="0.0.5",
+    version="0.0.6",
     author="Tahsin",
     author_email="hello@tahsin.us",
     description="A wrapper around HandBrake CLI for encoding multiple files with ease.",
