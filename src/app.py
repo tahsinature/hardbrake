@@ -1,9 +1,13 @@
+from rich import traceback, print
+import requests
+import os
+
+from src import VERSION
 import src.logger as logger
 import src.utils as utils
 import src.manager as manager
 import src.prompts as prompts
 import src.file as file
-from rich import traceback, print
 
 traceback.install()
 
@@ -53,3 +57,31 @@ def test():
   # file.manager.delete_file()
   # pass
   # print('here')
+
+
+def has_update(old_version, new_version):
+  old_version = old_version.split(".")
+  new_version = new_version.split(".")
+
+  for i in range(len(old_version)):
+    if int(old_version[i]) < int(new_version[i]):
+      return True
+
+  return False
+
+
+def update():
+  package_name = "hardbrake"
+  url = f"https://pypi.org/pypi/{package_name}/json"
+  response = requests.get(url)
+  data = response.json()
+  latest_version = data["info"]["version"]
+  current_version = VERSION
+
+  if has_update(current_version, latest_version):
+    logger.print(f"New version of {package_name} available: {latest_version}")
+    answer = prompts.ask_boolean(f"Do you want to update? ({current_version} -> {latest_version})")
+
+    if answer:
+      cmd = f"pip install --upgrade {package_name}"
+      os.system(cmd)

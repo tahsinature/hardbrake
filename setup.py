@@ -15,5 +15,5 @@ setup(
     packages=find_packages(),
     install_requires=required_packages,
     data_files=[("", ["requirements.txt"])],
-    scripts=["bin/hardbrake"]
+    scripts=["hardbrake"]
 )

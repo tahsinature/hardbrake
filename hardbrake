@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import click
+from src import app, VERSION
+
+
+@click.command()
+@click.option('--test', is_flag=True, help='Run testing function', default=False, )
+@click.option('--version', '-v', is_flag=True, help='Check version', default=False, )
+@click.option('--update', is_flag=True, help='Check for update', default=False, )
+def exec(test: str, version: str, update: str):
+  if test:
+    app.test()
+  elif version:
+    print(f'v: {VERSION}')
+  elif update:
+    app.update()
+  else:
+    app.main()
+
+
+exec()
