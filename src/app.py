@@ -85,3 +85,5 @@ def update():
     if answer:
       cmd = f"pip install --upgrade {package_name}"
       os.system(cmd)
+  else:
+    logger.success(f"You are using the latest version of {package_name} ({current_version})")
