@@ -1,7 +1,19 @@
-- name: Publish a Python distribution to PyPI
-  on:
-    push:
-      branches: [master]
-  uses: pypa/gh-action-pypi-publish@release/v1
-  with:
-    password: ${{ secrets.PYPI_API_TOKEN }}
+name: Publish a Python distribution to PyPI
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    container:
+      image: python:slim
+    steps:
+      - uses: actions/checkout@v2
+      - name: install make
+        run: apt update && apt install -y make twine
+      - name: Build and publish
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: make prepare && make build && twine upload dist/*
