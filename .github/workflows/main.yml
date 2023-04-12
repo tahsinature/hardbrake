@@ -23,12 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: install necessary tools
-        run: apt update && apt install -y make twine
       - name: build and publish
         uses: docker://python:slim
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         with:
-          args: make prepare && make build && twine upload dist/*
+          args: apt update && apt install -y make twine && make prepare && make build && twine upload dist/*
