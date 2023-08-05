@@ -16,7 +16,9 @@ def main():
   try:
     try:
       utils.verify_installation("HandBrakeCLI")
-      logger.success("HandBrakeCLI is installed")
+      logger.success("HandBrakeCLI found")
+      utils.verify_installation("ranger")
+      logger.success("ranger found")
     except Exception as e:
       logger.error(e.args[0])
       return
