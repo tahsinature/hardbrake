@@ -22,7 +22,7 @@ def select_files() -> list[str]:
     filtered_data = map(lambda x: x.strip(), data.splitlines())
     filtered_data = list(filter(lambda x: len(x) > 0, filtered_data))
     filtered_data = list(filter(lambda x: x.split(
-        ".")[-1] in allowed_extensions, filtered_data))
+        ".")[-1].lower() in allowed_extensions, filtered_data))
 
   os.remove(output_path)
 
