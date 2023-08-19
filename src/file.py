@@ -31,22 +31,23 @@ def select_files() -> list[str]:
 
 class _Manager:
   files: list[str] = []
+  original_files: list[str] = []
 
   def add_file(self, file_path: str) -> None:
     """Add a file to the list that has been interacted with"""
     self.files.append(file_path)
 
+  def add_original_file(self, file_path: str) -> None:
+    """Add original files to the list that has been interacted with"""
+    self.original_files.append(file_path)
+
   def delete_file(self):
-    """Delete files from the list that has been interacted with"""
-    available_files = list(filter(lambda x: os.path.exists(x), self.files))
-    if len(available_files) == 0:
-      return
-
-    picked_file = prompts.ask_multiselect(available_files, "Select a file to delete", )
-
-    for file_to_delete in picked_file:
-      os.remove(file_to_delete)
-      print(f"Deleted {file_to_delete}")
+    # """Delete files from the list that has been interacted with"""
+    delete_original_files = prompts.ask_boolean("Do you want to delete the original files?")
+    if delete_original_files:
+      for file_to_delete in self.original_files:
+        os.remove(file_to_delete)
+        print(f"Deleted {file_to_delete}")
 
 
 manager = _Manager()

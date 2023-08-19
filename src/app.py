@@ -31,7 +31,7 @@ def main():
       return
 
     for file_path in original_files:
-      file.manager.add_file(file_path)
+      file.manager.add_original_file(file_path)
 
     while not happy:
       preset = utils.select_preset()

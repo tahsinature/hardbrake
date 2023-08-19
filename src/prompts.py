@@ -29,10 +29,11 @@ def ask_boolean(question: str = "Select an option", ):
   ).ask()
 
 
-def ask_multiselect(choices: list[str], question: str = "Select an option", ):
+def ask_multiselect(choices: list[str], question: str = "Select an option"):
   return questionary.checkbox(
       question,
       choices=choices,
+
   ).ask()
 
 
