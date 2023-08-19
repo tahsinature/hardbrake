@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 
 import click
-from src import app, VERSION
+from src import app, VERSION, config
 
 
 @click.command()
 @click.option('--test', is_flag=True, help='Run testing function', default=False, )
 @click.option('--version', '-v', is_flag=True, help='Check version', default=False, )
 @click.option('--update', is_flag=True, help='Check for update', default=False, )
-def exec(test: str, version: str, update: str):
+@click.option('--show-command', is_flag=True, help='Show Command', default=False, )
+def exec(test: str, version: str, update: str, show_command: bool):
+  config.app["show-command"] = show_command
+
   if test:
     app.test()
   elif version:

@@ -1,6 +1,7 @@
 import src.event as event
 import src.loader as loader
 import src.utils as utils
+import src.config as config
 from rich import print
 from rich.panel import Panel
 from rich.syntax import Syntax
@@ -21,10 +22,11 @@ def manage(cmds: list[str]):
     loader.loader.add_task(utils.hash(pwe.cmd), 100)
 
   for pwe in pwe_list:
-    syntax = Syntax(pwe.cmd, "bash", theme="monokai", word_wrap=True)
-    panel = Panel(syntax, title="Command", )
+    if config.app['show-command']:
+      syntax = Syntax(pwe.cmd, "bash", theme="monokai", word_wrap=True)
+      panel = Panel(syntax, title="Command", )
+      print(panel)
 
-    print(panel)
     pwe.start()
 
   loader.loader.stop()
