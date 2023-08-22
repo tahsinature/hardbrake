@@ -12,7 +12,7 @@ import src.file as file
 traceback.install()
 
 
-def main():
+def main(files: list[str] = []):
   try:
     try:
       utils.verify_installation("HandBrakeCLI")
@@ -24,7 +24,7 @@ def main():
       return
 
     happy = False
-    original_files = file.select_files()
+    original_files = files or file.select_files()
 
     if len(original_files) == 0:
       logger.error("No files selected")
@@ -34,6 +34,7 @@ def main():
       file.manager.add_original_file(file_path)
 
     while not happy:
+
       preset = utils.select_preset()
 
       cmds = [utils.get_encode_cmd(file_path, preset) for file_path in original_files]
@@ -44,7 +45,7 @@ def main():
     file.manager.delete_file()
     logger.success("Job done!")
 
-  except KeyboardInterrupt:
+  except (KeyboardInterrupt, EOFError, KeyError):
     print("Exiting...")
 
 

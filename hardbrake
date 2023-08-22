@@ -9,7 +9,8 @@ from src import app, VERSION, config
 @click.option('--version', '-v', is_flag=True, help='Check version', default=False, )
 @click.option('--update', is_flag=True, help='Check for update', default=False, )
 @click.option('--show-command', is_flag=True, help='Show Command', default=False, )
-def exec(test: str, version: str, update: str, show_command: bool):
+@click.argument('input', type=click.File('r'), default=None, required=False)
+def exec(test: str, version: str, update: str, show_command: bool, input: click.File):
   config.app["show-command"] = show_command
 
   if test:
@@ -19,7 +20,7 @@ def exec(test: str, version: str, update: str, show_command: bool):
   elif update:
     app.update()
   else:
-    app.main()
+    app.main([input.name])
 
 
 exec()
