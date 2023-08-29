@@ -20,7 +20,9 @@ def exec(test: str, version: str, update: str, show_command: bool, input: click.
   elif update:
     app.update()
   else:
-    app.main([input.name])
+    name = input.name if input else None
+    files = [name] if name else []
+    app.main(files)
 
 
 exec()
