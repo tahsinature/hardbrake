@@ -1,48 +1,44 @@
 import src.event as event
 import src.loader as loader
 import src.utils as utils
-import src.config as config
 from rich import print
 from rich.panel import Panel
 from rich.syntax import Syntax
+import time
 
 
 def manage(cmds: list[str]):
-  loader.loader.start()
+    loader.loader.start()
 
-  def handle_progress(cmd: str, percent: int):
-    loader.loader.update(utils.hash(cmd), percent)
+    all_task_name = f"all ({len(cmds)})"
 
-  def get_process(cmd: str):
-    return event.ProcessWithEvent(cmd, progress_cb=handle_progress)
+    loader.loader.add_task(all_task_name, len(cmds))
+    loader.loader.add_task("current", 100)
 
-  pwe_list = list(map(get_process, cmds))
+    def handle_progress(cmd: str, percent: int):
+        loader.loader.update("current", percent)
 
-  for pwe in pwe_list:
-    loader.loader.add_task(utils.hash(pwe.cmd), 100)
+    for i in range(len(cmds)):
+        loader.loader.update("current", 0)
+        cmd = cmds[i]
+        time.sleep(0.01)
+        p = event.ProcessWithEvent(cmd, progress_cb=handle_progress)
+        p.start()
 
-  for pwe in pwe_list:
-    if config.app['show-command']:
-      syntax = Syntax(pwe.cmd, "bash", theme="monokai", word_wrap=True)
-      panel = Panel(syntax, title="Command", )
-      print(panel)
+        loader.loader.update(all_task_name, i + 1)
 
-    pwe.start()
-
-  loader.loader.stop()
+    loader.loader.stop()
 
 
 def main():
 
-  cmd1 = "source /Users/tahsin/.commonrc && hb_test 10"
-  cmd2 = "source /Users/tahsin/.commonrc && hb_test 12"
-  cmd3 = "source /Users/tahsin/.commonrc && hb_test 5"
-  cmd4 = "ls"
+    cmds = []
 
-  cmds = [cmd1, cmd2, cmd3, cmd4]
+    for i in range(1000):
+        cmds.append("ls")
 
-  manage(cmds)
+    manage(cmds)
 
 
 if __name__ == "__main__":
-  main()
+    main()
