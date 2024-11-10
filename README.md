@@ -16,15 +16,27 @@ HardBrake is a wrapper around [HandBrake CLI](https://github.com/HandBrake/HandB
 
 ## Installation
 
-Install via pip:
+Install via bun:
 
+```sh
+bun install --global hardbrake
 ```
-pip install hardbrake
+
+Or, directly run via bun:
+
+```sh
+bunx hardbrake
+```
+
+To specify a version:
+
+```sh
+bunx hardbrake@latest (or any version)
 ```
 
 ## Usage
 
-```
+```sh
 hardbrake
 ```
 
