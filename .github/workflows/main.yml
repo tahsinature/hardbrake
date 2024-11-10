@@ -1,38 +1,22 @@
-name: Node.js Package
+name: Bun Publish
 
 on:
   push:
     branches:
       - master
-  create:
-    tags:
-      - "*"
 
 jobs:
-  create-tag:
-    if: github.ref == 'refs/heads/master'
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: "lts/*"
+          bun-version: latest
       - name: Install dependencies
-        run: npm ci
-      - name: Bump version and add -SNAPSHOT suffix
-        run: |
-          npm version prerelease --preid=SNAPSHOT
-          git add package.json
-          git commit -m "Bump version to $(node -p "require('./package.json').version")"
-      - name: Create and push tag
-        run: |
-          TAG_NAME=$(node -p "require('./package.json').version")
-          git tag $TAG_NAME
-          git push origin $TAG_NAME
+        run: bun install
+      - name: publish
+        run: bun publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push changes
-        run: git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_CONFIG_TOKEN }}

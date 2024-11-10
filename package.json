@@ -1,7 +1,16 @@
 {
   "name": "hardbrake",
+  "version": "1.0.7",
   "module": "src/index.ts",
   "type": "module",
+  "license": "MIT",
+  "files": [
+    "src",
+    "bin"
+  ],
+  "bin": {
+    "hardbrake": "bin/hardbrake"
+  },
   "scripts": {
     "start": "bun run src/index.ts"
   },
