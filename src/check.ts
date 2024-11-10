@@ -12,11 +12,15 @@ const requiredBinaries = [
     purpose: "HandBrake Command Line Version to encode videos.",
     howTo: `Download HandBrake Command Line Version from: https://handbrake.fr/downloads.php`,
   },
-
   {
     name: "fzf",
     purpose: "Fuzzy Finder to select multiple files.",
     howTo: `Install fzf from: https://github.com/junegunn/fzf#installation`,
+  },
+  {
+    name: "fd",
+    purpose: "To find and filter files.",
+    howTo: `Install fd from: https://github.com/sharkdp/fd#installation`,
   },
 ];
 
