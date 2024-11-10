@@ -1,32 +1,38 @@
-name: Publish a Python distribution to PyPI
+name: Node.js Package
 
 on:
   push:
-    branches: [master]
-
-# jobs:
-# deploy:
-#   container:
-#     image: python:slim
-#   steps:
-#     - uses: actions/checkout@v2
-#     - name: install make
-#       run: apt update && apt install -y make twine
-#     - name: Build and publish
-#       env:
-#         TWINE_USERNAME: __token__
-#         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-#       run: make prepare && make build && twine upload dist/*
+    branches:
+      - master
+  create:
+    tags:
+      - "*"
 
 jobs:
-  deploy:
+  create-tag:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: build and publish
-        uses: docker://python:slim
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          args: bash ./scripts/deploy.sh
+          node-version: "lts/*"
+      - name: Install dependencies
+        run: npm ci
+      - name: Bump version and add -SNAPSHOT suffix
+        run: |
+          npm version prerelease --preid=SNAPSHOT
+          git add package.json
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+      - name: Create and push tag
+        run: |
+          TAG_NAME=$(node -p "require('./package.json').version")
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push changes
+        run: git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
