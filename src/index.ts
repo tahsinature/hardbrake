@@ -1,9 +1,12 @@
-import path from "path";
+import { askFiles, askPreset, askToggle } from "./prompts";
 import { main } from "./engine";
+import { checkRequiredBinaries } from "./check";
 
-await main();
+await checkRequiredBinaries();
+const files = await askFiles();
+const preset = await askPreset();
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+await main(files, preset);
 
-await wait(1000);
-console.log("hehe");
+const deleteOriginalFiles = await askToggle("Do you want to delete the original files?");
+if (deleteOriginalFiles) for (const file of files) await file.delete();
