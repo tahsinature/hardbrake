@@ -12,7 +12,8 @@
     "hardbrake": "bin/hardbrake"
   },
   "scripts": {
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "bump": "./scripts/bump"
   },
   "devDependencies": {
     "@types/bun": "latest",
