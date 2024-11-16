@@ -12,9 +12,15 @@ Usage
   `,
   {
     importMeta: import.meta,
+    allowUnknownFlags: false,
     flags: {
-      station: {
-        type: "string",
+      help: {
+        type: "boolean",
+        alias: "h",
+      },
+      version: {
+        type: "boolean",
+        alias: "v",
       },
     },
   }
