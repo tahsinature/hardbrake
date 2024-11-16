@@ -5,7 +5,7 @@ read -rp "Are you sure you want to bump the version? (yes/no): " confirmation
 
 # if user confirms, ask for the version bump type
 if [ "$confirmation" = "yes" ]; then
-  read -rp "What type of version bump? (patch | minor | major): " bumpType
+  read -rp "What type of version bump? (major/minor/patch): " bumpType
 
   # if user provides a valid version bump type, bump the version
   if [ "$bumpType" = "major" ] || [ "$bumpType" = "minor" ] || [ "$bumpType" = "patch" ]; then
