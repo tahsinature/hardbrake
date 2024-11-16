@@ -13,11 +13,13 @@ const getProgressAndRemainingTime = (line: string) => {
   return { progress, remainingTime };
 };
 
-export const main = async (files: File[], preset: string) => {
+export const main = async (files: File[], preset: string, { keepAudio = true }) => {
+  const audioFlag = keepAudio ? "" : "-a none";
+
   for (const file of files) {
     const outputFileName = `${file.fileNameWithoutExtension}__HandBraked__${preset}.mp4`;
     file.outputFullPath = path.resolve(file.dir, outputFileName);
-    file.cmd = `HandBrakeCLI -i '${file.originalFullPath}' -o '${file.outputFullPath}' -Z '${preset}'`;
+    file.cmd = `HandBrakeCLI -i '${file.originalFullPath}' ${audioFlag} -o '${file.outputFullPath}' -Z '${preset}'`;
   }
 
   const progressBar = new ProgressBar(files.length);

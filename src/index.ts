@@ -12,8 +12,9 @@ const hardbrake = async () => {
   }
 
   const preset = await askPreset();
+  const keepAudio = await askToggle("Do you want to keep the audio?");
 
-  await main(files, preset);
+  await main(files, preset, { keepAudio });
 
   const happyWithResults = await askToggle("Are you happy with the results?");
   if (!happyWithResults) {
