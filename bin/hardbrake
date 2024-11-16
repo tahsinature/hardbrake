@@ -1,31 +1,45 @@
 #!/usr/bin/env bun
 
 import meow from "meow";
+const description = `HardBrake is a wrapper around HandBrake CLI for encoding multiple files with ease.`;
 
 const cli = meow(
   `
 Usage
-  $ hardbrake --help
+  $ hardbrake
+
   Options
     --help  Show this help message
     --version Show the version
+    --upgrade Upgrade HardBrake to the latest version
   `,
   {
     importMeta: import.meta,
     allowUnknownFlags: false,
+    description,
     flags: {
-      help: {
-        type: "boolean",
-        alias: "h",
-      },
-      version: {
-        type: "boolean",
-        alias: "v",
-      },
+      help: { type: "boolean", shortFlag: "h" },
+      version: { type: "boolean", shortFlag: "v" },
+      upgrade: { type: "boolean", shortFlag: "u" },
     },
   }
 );
 
-import hardbrake from "../src/index";
+const upgrade = async () => {
+  const url = "https://registry.npmjs.org/hardbrake";
 
+  const response = await fetch(url);
+  const data = await response.json();
+  const isLatest = data["dist-tags"].latest === cli.pkg.version;
+
+  if (isLatest) console.log("You are already using the latest version of HardBrake.");
+  else console.log(`A new version of HardBrake is available. Run 'bun add -g hardbrake' to upgrade.`);
+
+  process.exit(0);
+};
+
+if (cli.flags.upgrade) await upgrade();
+else console.log(`HardBrake v${cli.pkg.version}`);
+
+import hardbrake from "../src/index";
 await hardbrake();
