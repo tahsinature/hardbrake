@@ -39,7 +39,7 @@ const upgrade = async () => {
   const isLatest = latestVersion === cli.pkg.version;
 
   if (isLatest) console.log(`You are already using the latest version: ${latestVersion}.`);
-  else console.log(`A new version ${latestVersion} is available. Run 'bun add -g hardbrake' to upgrade.`);
+  else console.log(`A new version ${latestVersion} is available. Run 'bun add -g hardbrake@${latestVersion}' to upgrade.`);
 
   process.exit(0);
 };
