@@ -1,18 +1,11 @@
 #!/bin/bash
 
-# ask user for confirmation
-read -rp "Are you sure you want to bump the version? (yes/no): " confirmation
+# ask user for version bump type
+read -rp "What type of version bump? (major/minor/patch): " bumpType
 
-# if user confirms, ask for the version bump type
-if [ "$confirmation" = "yes" ]; then
-  read -rp "What type of version bump? (major/minor/patch): " bumpType
-
-  # if user provides a valid version bump type, bump the version
-  if [ "$bumpType" = "major" ] || [ "$bumpType" = "minor" ] || [ "$bumpType" = "patch" ]; then
-    bunx np --no-tests --no-publish --no-cleanup "$bumpType"
-  else
-    echo "Invalid version bump type. Exiting..."
-  fi
+# if user provides a valid version bump type, bump the version
+if [ "$bumpType" = "major" ] || [ "$bumpType" = "minor" ] || [ "$bumpType" = "patch" ]; then
+  bunx np --no-tests --no-publish --no-cleanup "$bumpType"
 else
-  echo "Exiting..."
+  echo "Invalid version bump type. Exiting..."
 fi
