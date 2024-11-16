@@ -8,6 +8,11 @@ const cli = meow(
 Usage
   $ hardbrake
 
+  You can create alias for 'hardbrake' command in your shell profile.
+  Mac: alias hb
+  Linux: alias hb
+  Windows: doskey hb=hardbrake $*
+
   Options
     --help  Show this help message
     --version Show the version
