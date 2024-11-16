@@ -1,6 +1,6 @@
 {
   "name": "hardbrake",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "module": "src/index.ts",
   "type": "module",
   "license": "MIT",
