@@ -1,5 +1,25 @@
 #!/usr/bin/env bun
 
+import meow from "meow";
+
+const cli = meow(
+  `
+Usage
+  $ hardbrake --help
+  Options
+    --help  Show this help message
+    --version Show the version
+  `,
+  {
+    importMeta: import.meta,
+    flags: {
+      station: {
+        type: "string",
+      },
+    },
+  }
+);
+
 import hardbrake from "../src/index";
 
 await hardbrake();
