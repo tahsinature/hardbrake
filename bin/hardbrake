@@ -30,10 +30,11 @@ const upgrade = async () => {
 
   const response = await fetch(url);
   const data = await response.json();
-  const isLatest = data["dist-tags"].latest === cli.pkg.version;
+  const latestVersion = data["dist-tags"].latest;
+  const isLatest = latestVersion === cli.pkg.version;
 
-  if (isLatest) console.log("You are already using the latest version of HardBrake.");
-  else console.log(`A new version of HardBrake is available. Run 'bun add -g hardbrake' to upgrade.`);
+  if (isLatest) console.log(`You are already using the latest version: ${latestVersion}.`);
+  else console.log(`A new version ${latestVersion} is available. Run 'bun add -g hardbrake' to upgrade.`);
 
   process.exit(0);
 };

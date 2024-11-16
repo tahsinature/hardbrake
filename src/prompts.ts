@@ -3,6 +3,14 @@ import path from "path";
 import { getPresets, runShellCommand } from "./utils";
 import { File } from "./blueprints";
 
+function promptsWithOnCancel<T extends string = string>(questions: prompts.PromptObject<T> | Array<prompts.PromptObject<T>>) {
+  return prompts(questions, {
+    onCancel: () => {
+      process.exit(0);
+    },
+  });
+}
+
 export const askFiles = async () => {
   const supportedExt = ["mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "m4v", "lrf"];
   const extentionsFlags = supportedExt.map((ext) => `-e ${ext}`).join(" ");
@@ -16,17 +24,12 @@ export const askFiles = async () => {
 };
 
 const askAutoComplete = async (message: string, choices: string[]) => {
-  const response = await prompts(
-    {
-      type: "autocomplete",
-      name: "value",
-      message,
-      choices: choices.map((choice) => ({ title: choice, value: choice })),
-    },
-    {
-      onCancel: () => process.exit(0),
-    }
-  );
+  const response = await promptsWithOnCancel({
+    type: "autocomplete",
+    name: "value",
+    message,
+    choices: choices.map((choice) => ({ title: choice, value: choice })),
+  });
 
   return response.value;
 };
@@ -43,7 +46,7 @@ export const askPreset = async () => {
 };
 
 export const askBoolean = async (message: string) => {
-  const response = await prompts({
+  const response = await promptsWithOnCancel({
     type: "confirm",
     name: "answer",
     message,
@@ -52,12 +55,12 @@ export const askBoolean = async (message: string) => {
   return response.answer;
 };
 
-export const askToggle = async (message: string) => {
-  const response = await prompts({
+export const askToggle = async (message: string, { initial = false } = {}) => {
+  const response = await promptsWithOnCancel({
     type: "toggle",
     name: "value",
     message,
-    initial: false,
+    initial,
     active: "yes",
     inactive: "no",
   });
