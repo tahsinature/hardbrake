@@ -23,7 +23,7 @@ export const askFiles = async () => {
   return filtered.map((file) => path.resolve(file)).map((file) => new File(file));
 };
 
-const askAutoComplete = async (message: string, choices: string[]) => {
+export const askAutoComplete = async (message: string, choices: string[]) => {
   const response = await promptsWithOnCancel({
     type: "autocomplete",
     name: "value",
