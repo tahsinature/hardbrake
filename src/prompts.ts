@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import { getPresets, runShellCommandAndReturnOutput } from "./utils";
+import { getPresets, runShellCommandAndReturnOutput, runShellCommandSimple } from "./utils";
 import { File } from "./blueprints";
 
 export const askFiles = async (supportedExtensions: string[]) => {
@@ -43,20 +43,15 @@ export const askChoose = async (message: string, choices: string[], { limit = 1 
 };
 
 export const askFilter = async (message: string, choices: string[], { limit = 0, min = 0 }: { limit?: number; min?: number } = {}) => {
-  try {
-    const gumChoices = choices.join("\n");
-    let command = `echo "${gumChoices}" | gum filter`;
+  const gumChoices = choices.join("\n");
+  let command = `echo "${gumChoices}" | gum filter`;
 
-    if (limit) command += ` --limit ${limit}`;
-    else command += " --no-limit";
+  if (limit) command += ` --limit ${limit}`;
+  else command += " --no-limit";
 
-    const selected = runShellCommandAndReturnOutput(command);
-    if (selected.length < min) throw new Error("Minimum number of choices not selected");
-    return selected;
-  } catch (error: any) {
-    console.error(error.message);
-    process.exit(1);
-  }
+  const selected = runShellCommandAndReturnOutput(command);
+  if (selected.length < min) throw new Error("Minimum number of choices not selected");
+  return selected;
 };
 
 const fullPresetList = await getPresets();
@@ -85,4 +80,23 @@ export const askInteger = async (message: string, initial?: number) => {
   if (isNaN(nm)) throw new Error("Invalid number");
 
   return nm;
+};
+
+export const showNotice = (messages: string[]) => {
+  const lines = messages.map((message) => `'${message}'`).join(" ");
+
+  runShellCommandSimple(`gum style \
+    --foreground 212 --border-foreground 212 --border double \
+    --align center --margin "1 2" --padding "2 4" \
+    ${lines}`);
+};
+
+export const showErrorAndExit = (messages: string[]) => {
+  const lines = messages.map((message) => `'${message}'`).join(" ");
+  runShellCommandSimple(`gum style \
+    --foreground 196 --border-foreground 196 --border double \
+    --align center --margin "1 2" --padding "2 4" \
+    ${lines}`);
+
+  process.exit(1);
 };
