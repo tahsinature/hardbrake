@@ -1,33 +1,54 @@
-import { askFiles, askPreset, askToggle } from "./prompts";
-import { main } from "./engine";
+import { askBoolean, askChoose, askFiles, askFilter, askPreset } from "./prompts";
+import { compressVideo, compressAudio } from "./engine";
 import { checkRequiredBinaries } from "./check";
+import { Operations } from "./types";
 
-const hardbrake = async () => {
-  await checkRequiredBinaries();
+const videoCompress = async () => {
+  await checkRequiredBinaries(Operations.VIDEO_COMPRESS);
 
-  const files = await askFiles();
-  if (files.length === 0) {
-    console.log("No files selected. Exiting.");
-    process.exit(0);
-  }
+  const files = await askFiles(["mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "m4v", "lrf"]);
 
   const preset = await askPreset();
-  const keepAudio = await askToggle("Do you want to keep the audio?", { initial: true });
 
-  await main(files, preset, { keepAudio });
+  const keepAudio = await askBoolean("Do you want to keep the audio?", "true");
 
-  const happyWithResults = await askToggle("Are you happy with the results?", { initial: true });
+  await compressVideo(files, preset, { keepAudio });
+
+  const happyWithResults = await askBoolean("Are you happy with the results?", "true");
   if (!happyWithResults) {
     for (const file of files) await file.deleteOutput();
     console.log("Deleted all the output files.");
     process.exit(0);
   }
 
-  const deleteOriginalFiles = await askToggle("Do you want to delete the original files?", { initial: false });
+  const deleteOriginalFiles = await askBoolean("Do you want to delete the original files?", "false");
   if (deleteOriginalFiles) {
     for (const file of files) await file.deleteOriginal();
     console.log("Deleted all the original files.");
   }
 };
 
-export default hardbrake;
+const audioCompress = async () => {
+  await checkRequiredBinaries(Operations.AUDIO_COMPRESS);
+
+  const files = await askFiles(["mp3", "wav", "flac", "m4a", "aac", "ogg", "wma", "aiff", "alac"]);
+  const bitrate = await askFilter("Select a bitrate", ["16k", "32k", "64k", "128k", "256k", "320k"], { limit: 1, min: 1 });
+
+  for (const file of files) {
+    await compressAudio(file, bitrate[0]);
+  }
+};
+
+const fnMap: Record<Operations, () => Promise<void>> = {
+  [Operations.VIDEO_COMPRESS]: videoCompress,
+  [Operations.AUDIO_COMPRESS]: audioCompress,
+};
+
+const root = async () => {
+  const choice = await askChoose("Select an operation", Object.values(Operations));
+  const op = choice[0] as Operations;
+
+  await fnMap[op]();
+};
+
+export default root;
