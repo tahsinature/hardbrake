@@ -22,4 +22,9 @@ export class File {
     if (this.outputFullPath) fs.promises.unlink(this.outputFullPath);
     else console.error(`Output file not found for ${this.originalFullPath}`);
   }
+
+  getOutputFileSizeInMB() {
+    if (!this.outputFullPath) throw new Error("Output file not found");
+    return fs.statSync(this.outputFullPath).size / 1024 / 1024;
+  }
 }
