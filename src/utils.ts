@@ -1,17 +1,6 @@
-import { spawn } from "child_process";
+import fs from "fs";
 import readline from "readline";
-
-export const runShellCommand = async (cmd: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    var out = spawn(cmd, {
-      stdio: ["inherit", "pipe", "inherit"],
-      shell: true,
-    });
-
-    out.stdout.setEncoding("utf-8");
-    out.stdout.on("readable", () => resolve(out.stdout.read()));
-  });
-};
+import { spawn, spawnSync } from "child_process";
 
 export const runShellCommandAndReturnLine = (command: string, handleNewLine: (line: string) => void): Promise<void> => {
   return new Promise((resolve) => {
@@ -28,6 +17,19 @@ export const runShellCommandAndReturnLine = (command: string, handleNewLine: (li
 
     child.on("exit", resolve);
   });
+};
+
+export const runShellCommandSimple = (cmd: string) => {
+  spawnSync(cmd, { shell: true, stdio: ["inherit", "inherit", "inherit"] });
+};
+
+export const runShellCommandAndReturnOutput = (cmd: string) => {
+  const { stdout } = spawnSync(cmd, { shell: true, stdio: ["inherit", "pipe", "inherit"] });
+
+  return stdout
+    .toString()
+    .split("\n")
+    .filter((x) => x);
 };
 
 export const getPresets = async () => {
@@ -56,4 +58,22 @@ export const getPresets = async () => {
   }
 
   return presetMap;
+};
+
+/**
+ * escape any special characters in the path like spaces, quotes, etc.
+ */
+export const escapePath = (path: string) => {
+  return path.replace(/(["\s'$`\\])/g, "\\$1");
+};
+
+export const createDirOvewriteRecursive = (dir: string) => {
+  if (!dir) return;
+
+  fs.existsSync(dir) &&
+    fs.rmdirSync(dir, {
+      recursive: true,
+    });
+
+  fs.mkdirSync(dir, { recursive: true });
 };
