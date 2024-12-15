@@ -77,3 +77,8 @@ export const createDirOvewriteRecursive = (dir: string) => {
 
   fs.mkdirSync(dir, { recursive: true });
 };
+
+export const checkIfBinaryExists = (binary: string) => {
+  const lines = runShellCommandAndReturnOutput(`which ${binary}`);
+  return lines.length > 0;
+};
