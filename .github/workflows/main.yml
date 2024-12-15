@@ -2,8 +2,8 @@ name: Bun Publish
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - "*"
 
 jobs:
   build:
