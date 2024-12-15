@@ -1,21 +1,15 @@
-import { Operations } from "./types";
-import { runShellCommandAndReturnLine } from "./utils";
+import { Operations, type Binary } from "./types";
+import { checkIfBinaryExists } from "./utils";
 
-const checkIfBinaryExists = async (binary: string) => {
-  const lines: string[] = [];
-  await runShellCommandAndReturnLine(`which ${binary}`, (l) => l && lines.push(l));
-  return lines.length > 0;
-};
-
-const commonRequiredBinaries = [
+export const commonRequiredBinaries: Binary[] = [
   {
     name: "gum",
-    purpose: "To convert audio files to mp3.",
+    purpose: "Gum is a CLI tool to interact with the terminal.",
     howTo: `Install gum from: https://github.com/charmbracelet/gum`,
   },
 ];
 
-const requiredBinariesForVideo = [
+const requiredBinariesForVideo: Binary[] = [
   ...commonRequiredBinaries,
   {
     name: "HandBrakeCLI",
@@ -24,7 +18,7 @@ const requiredBinariesForVideo = [
   },
 ];
 
-const requiredBinariesForAudio = [
+const requiredBinariesForAudio: Binary[] = [
   ...commonRequiredBinaries,
   {
     name: "ffmpeg",
@@ -41,14 +35,20 @@ const requiredBinariesForAudio = [
 const mappedByOp = {
   [Operations.VIDEO_COMPRESS]: requiredBinariesForVideo,
   [Operations.AUDIO_COMPRESS]: requiredBinariesForAudio,
+  [Operations.GENERAL]: commonRequiredBinaries,
 };
 
-export const checkRequiredBinaries = async (op: Operations) => {
-  const missing = [];
+export const checkRequiredBinaries = (op: Operations) => {
   const requiredBinaries = mappedByOp[op] as { name: string; purpose: string; howTo: string }[];
 
-  for (const binary of requiredBinaries) {
-    const isFound = await checkIfBinaryExists(binary.name);
+  checkBinaries(requiredBinaries);
+};
+
+export const checkBinaries = (binaries: Binary[]) => {
+  const missing = [];
+
+  for (const binary of binaries) {
+    const isFound = checkIfBinaryExists(binary.name);
     if (!isFound) missing.push(binary);
   }
 
@@ -59,6 +59,7 @@ export const checkRequiredBinaries = async (op: Operations) => {
       console.error(`- ${binary.name}: ${binary.purpose}`);
       console.error(binary.howTo);
     }
+
     process.exit(1);
   }
 };
