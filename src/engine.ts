@@ -13,7 +13,7 @@ const getProgressAndRemainingTime = (line: string) => {
   return { progress, remainingTime };
 };
 
-export const main = async (files: File[], preset: string, { keepAudio = true }) => {
+export const compressVideo = async (files: File[], preset: string, { keepAudio = true }) => {
   const audioFlag = keepAudio ? "" : "-a none";
 
   for (const file of files) {
@@ -38,4 +38,9 @@ export const main = async (files: File[], preset: string, { keepAudio = true }) 
   }
 
   progressBar.stop();
+};
+
+export const compressAudio = async (file: File, bitrate: string) => {
+  console.log("Compressing audio...");
+  console.log(file, bitrate);
 };
