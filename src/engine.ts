@@ -59,12 +59,12 @@ export const compressAudio = async (files: File[], bitrate: string) => {
         command.input(part);
         command.audioCodec("copy");
         const partName = part.split(".mp3.")[1];
-        const outputFileName = path.join(outputDir, `${partName}.mp3`);
+        const outputFileName = path.join(outputDir, `HardBraked__${partName}.mp3`);
         command.output(outputFileName);
         await compressAudioAsync(command);
       }
     } else {
-      const newLoc = path.resolve(file.dir, `${file.baseName}_${bitrate}.mp3`);
+      const newLoc = path.resolve(file.dir, `${file.baseName}__HardBraked__${bitrate}.mp3`);
       fs.renameSync(outputFullPathTemp, newLoc);
     }
 
@@ -80,7 +80,7 @@ export const compressVideo = async (files: File[], preset: string, { keepAudio =
   const audioFlag = keepAudio ? "" : "-a none";
 
   for (const file of files) {
-    const outputFileName = `${file.baseName}__HandBraked__${preset}.mp4`;
+    const outputFileName = `${file.baseName}__HardBraked__${preset}.mp4`;
     file.outputFullPath = path.resolve(file.dir, outputFileName);
     file.cmd = `HandBrakeCLI -i '${file.originalFullPath}' ${audioFlag} -o '${file.outputFullPath}' -Z '${preset}'`;
   }

@@ -4,6 +4,14 @@ import { File } from "./blueprints";
 import { askChoose, askFilter } from "./prompts";
 import { checkIfBinaryExists, runShellCommandAndReturnOutput } from "./utils";
 
+const getSupportedFilesFromCurrentDir = (supportedExtensions: string[]) => {
+  const fileNames = fs.readdirSync(process.cwd());
+  const supportedFiles = fileNames.filter((file) => supportedExtensions.includes(file.split(".").pop() || ""));
+  if (supportedFiles.length === 0) throw new Error("No files found in the folder");
+
+  return supportedFiles;
+};
+
 const pickerMap: Record<string, (supportedExtensions: string[]) => File[]> = {
   xplr: (supportedExtensions: string[]) => {
     const isInstalled = checkIfBinaryExists("xplr");
@@ -16,14 +24,25 @@ const pickerMap: Record<string, (supportedExtensions: string[]) => File[]> = {
     throw new Error("Not implemented");
   },
   manual: (supportedExtensions: string[]) => {
-    const dir = process.cwd();
-    const fileNames = fs.readdirSync(dir);
-    const supportedFiles = fileNames.filter((file) => supportedExtensions.includes(file.split(".").pop() || ""));
-    if (supportedFiles.length === 0) throw new Error("No files found in the folder");
+    const supportedFiles = getSupportedFilesFromCurrentDir(supportedExtensions);
+
     const selectedFiles = askFilter("Choose videos", supportedFiles, { min: 1 });
     if (selectedFiles.length === 0) throw new Error("No files selected");
 
-    return selectedFiles.map((file) => new File(path.join(dir, file)));
+    return selectedFiles.map((file) => new File(path.join(process.cwd(), file)));
+  },
+  non_hardbraked: (supportedExtensions: string[]) => {
+    const possible = ["hardbraked", "handbraked"];
+    const nonHardBrakedSupportedFiles = getSupportedFilesFromCurrentDir(supportedExtensions).filter((path) => {
+      return !possible.some((word) => path.toLowerCase().includes(word));
+    });
+
+    const selectedFiles = askFilter("Choose videos", nonHardBrakedSupportedFiles, { min: 1 });
+    if (selectedFiles.length === 0) throw new Error("No files selected");
+
+    return selectedFiles.map((file) => new File(path.join(process.cwd(), file)));
+
+    return null as any;
   },
 };
 
