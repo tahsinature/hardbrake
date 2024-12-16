@@ -1,31 +1,21 @@
-import { File } from "./blueprints";
 import fs from "fs";
+import path from "path";
+import { File } from "./blueprints";
 import { askChoose, askFilter } from "./prompts";
 import { checkIfBinaryExists, runShellCommandAndReturnOutput } from "./utils";
-import path from "path";
 
-const options = ["xplr", "nnn"];
+const pickerMap: Record<string, (supportedExtensions: string[]) => File[]> = {
+  xplr: (supportedExtensions: string[]) => {
+    const isInstalled = checkIfBinaryExists("xplr");
+    if (!isInstalled) throw new Error("xplr is not installed. Choose another file picker");
 
-const pickerMap: Record<string, () => File[]> = {
-  xplr: () => {
     const paths = runShellCommandAndReturnOutput(`xplr --read-only`);
     return paths.map((path: string) => new File(path));
   },
-  nnn: () => {
+  nnn: (supportedExtensions: string[]) => {
     throw new Error("Not implemented");
   },
-};
-
-let selectedFilePicker: string = null as any;
-
-export const selectFiles = (supportedExtensions: string[]) => {
-  let files = [] as File[];
-  const available = options.filter((option) => checkIfBinaryExists(option));
-  if (available.length) {
-    const choice = askChoose("Select a file manager", available);
-    selectedFilePicker = choice[0];
-    files = pickerMap[selectedFilePicker]();
-  } else {
+  manual: (supportedExtensions: string[]) => {
     const dir = process.cwd();
     const fileNames = fs.readdirSync(dir);
     const supportedFiles = fileNames.filter((file) => supportedExtensions.includes(file.split(".").pop() || ""));
@@ -33,11 +23,21 @@ export const selectFiles = (supportedExtensions: string[]) => {
     const selectedFiles = askFilter("Choose videos", supportedFiles, { min: 1 });
     if (selectedFiles.length === 0) throw new Error("No files selected");
 
-    files = selectedFiles.map((file) => new File(path.join(dir, file)));
-  }
+    return selectedFiles.map((file) => new File(path.join(dir, file)));
+  },
+};
 
+let selectedFilePicker: string = null as any;
+
+export const selectFiles = (supportedExtensions: string[]) => {
+  const choice = askChoose("Select a file manager", Object.keys(pickerMap));
+  selectedFilePicker = choice[0];
+
+  let files = pickerMap[selectedFilePicker](supportedExtensions);
   if (files.length === 0) throw new Error("No files selected");
-  files = files.filter((file) => supportedExtensions.includes(file.getExtension()));
+
+  files = files.filter((file) => supportedExtensions.includes(file.getExtension().toLowerCase()));
   if (files.length === 0) throw new Error("No supported files found");
+
   return files;
 };
