@@ -3,18 +3,18 @@ import fs from "fs";
 import { getPresets, runShellCommandAndReturnOutput, runShellCommandSimple } from "./utils";
 import { File } from "./blueprints";
 
-export const askFiles = async (supportedExtensions: string[]) => {
-  const dir = await askFolderPath();
+export const askFiles = (supportedExtensions: string[]) => {
+  const dir = askFolderPath();
   const files = fs.readdirSync(dir);
   const videos = files.filter((file) => supportedExtensions.includes(file.split(".").pop() || ""));
   if (videos.length === 0) throw new Error("No files found in the folder");
-  const selectedVids = await askFilter("Choose videos", videos, { min: 1 });
+  const selectedVids = askFilter("Choose videos", videos, { min: 1 });
   if (selectedVids.length === 0) throw new Error("No files selected");
 
   return selectedVids.map((file) => new File(path.join(dir, file)));
 };
 
-export const askFolderPath = async () => {
+export const askFolderPath = () => {
   console.log("Select a directory or, a file. If a file is selected, the parent directory will be used.");
 
   const command = `gum file --all --directory .`;
@@ -27,22 +27,18 @@ export const askFolderPath = async () => {
   return dirPath;
 };
 
-export const askChoose = async (message: string, choices: string[], { limit = 1 }: { limit?: number } = {}) => {
-  try {
-    const gumChoices = choices.join(",");
-    let command = `gum choose {${gumChoices}}`;
+export const askChoose = (message: string, choices: string[], { limit = 1 }: { limit?: number } = {}) => {
+  const formattedChoices = choices.map((choice) => choice.replace(/ /g, "\\ "));
+  const gumChoices = formattedChoices.join(",");
+  let command = `gum choose {${gumChoices}}`;
 
-    if (limit) command += ` --limit ${limit}`;
-    else command += " --no-limit";
+  if (limit) command += ` --limit ${limit}`;
+  else command += " --no-limit";
 
-    return runShellCommandAndReturnOutput(command);
-  } catch (error: any) {
-    console.error(error.message);
-    process.exit(1);
-  }
+  return runShellCommandAndReturnOutput(command);
 };
 
-export const askFilter = async (message: string, choices: string[], { limit = 0, min = 0 }: { limit?: number; min?: number } = {}) => {
+export const askFilter = (message: string, choices: string[], { limit = 0, min = 0 }: { limit?: number; min?: number } = {}) => {
   const gumChoices = choices.join("\n");
   let command = `echo "${gumChoices}" | gum filter`;
 
@@ -57,22 +53,22 @@ export const askFilter = async (message: string, choices: string[], { limit = 0,
 const fullPresetList = await getPresets();
 const categories = Object.keys(fullPresetList);
 
-export const askPreset = async () => {
-  const category = await askFilter("Select a category", categories, { limit: 1, min: 1 });
+export const askPreset = () => {
+  const category = askFilter("Select a category", categories, { limit: 1, min: 1 });
   const presets = fullPresetList[category[0]];
-  const preset = await askFilter("Select a preset", presets, { limit: 1, min: 1 });
+  const preset = askFilter("Select a preset", presets, { limit: 1, min: 1 });
 
   return preset[0];
 };
 
-export const askBoolean = async (message: string, initial?: "true" | "false") => {
+export const askBoolean = (message: string, initial?: "true" | "false") => {
   const defaultFlag = initial ? `--default=${initial}` : "";
   const command = `gum confirm ${defaultFlag} "${message}" && echo "true" || echo "false"`;
   const response = runShellCommandAndReturnOutput(command);
   return response[0] === "true";
 };
 
-export const askInteger = async (message: string, initial?: number) => {
+export const askInteger = (message: string, initial?: number) => {
   const initialFlag = initial ? `--value=${initial}` : "";
   const command = `gum input --placeholder="${message}" ${initialFlag}`;
   const response = runShellCommandAndReturnOutput(command);
@@ -82,13 +78,15 @@ export const askInteger = async (message: string, initial?: number) => {
   return nm;
 };
 
-export const showNotice = (messages: string[]) => {
+export const showNotice = (messages: string[], shouldExit = false) => {
   const lines = messages.map((message) => `'${message}'`).join(" ");
 
   runShellCommandSimple(`gum style \
     --foreground 212 --border-foreground 212 --border double \
     --align center --margin "1 2" --padding "2 4" \
     ${lines}`);
+
+  if (shouldExit) process.exit(0);
 };
 
 export const showErrorAndExit = (messages: string[]) => {
