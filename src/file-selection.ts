@@ -6,7 +6,8 @@ import { checkIfBinaryExists, runShellCommandAndReturnOutput } from "./utils";
 
 const getSupportedFilesFromCurrentDir = (supportedExtensions: string[]) => {
   const fileNames = fs.readdirSync(process.cwd());
-  const supportedFiles = fileNames.filter((file) => supportedExtensions.includes(file.split(".").pop() || ""));
+  const supportedFiles = fileNames.filter((fileName) => supportedExtensions.includes(fileName.split(".").pop() || ""));
+
   if (supportedFiles.length === 0) throw new Error("No files found in the folder");
 
   return supportedFiles;
@@ -37,6 +38,7 @@ const pickerMap: Record<string, (supportedExtensions: string[]) => File[]> = {
       return !possible.some((word) => path.toLowerCase().includes(word));
     });
 
+    if (nonHardBrakedSupportedFiles.length === 0) throw new Error("No non-hardbraked files found");
     const selectedFiles = askFilter("Choose videos", nonHardBrakedSupportedFiles, { min: 1 });
     if (selectedFiles.length === 0) throw new Error("No files selected");
 

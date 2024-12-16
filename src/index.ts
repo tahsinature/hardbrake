@@ -20,7 +20,7 @@ const audioCompress = async (cliOpt: CliOptions) => {
   checkRequiredBinaries(Operations.AUDIO_COMPRESS);
 
   let files = cliOpt.filePaths.map((path) => new File(path));
-  if (files.length === 0) files = selectFiles(File.exts.video);
+  if (files.length === 0) files = selectFiles(File.exts.audio);
 
   const bitrate = askFilter("Select a bitrate", ["16k", "32k", "64k", "128k", "256k", "320k"], { limit: 1, min: 1 });
 
