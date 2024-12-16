@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# get the root directory of the project
+ROOT_DIR=$(git rev-parse --show-toplevel)
+
+alias hb-local="\$ROOT_DIR/bin/hardbrake"
+alias hb-pg="bun run --watch \$ROOT_DIR/playground/index.ts"
