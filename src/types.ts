@@ -9,3 +9,8 @@ export type Binary = {
   purpose: string;
   howTo: string;
 };
+
+export type CliOptions = {
+  version: string;
+  filePaths: string[];
+};

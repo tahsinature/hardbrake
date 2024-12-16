@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 
 import meow from "meow";
+import fs from "fs";
+import path from "path";
 const description = `HardBrake is a wrapper around HandBrake CLI for encoding multiple files with ease.`;
 
 const cli = meow(
@@ -16,7 +18,7 @@ Usage
   Options
     --help  Show this help message
     --version Show the version
-    --upgrade Upgrade HardBrake to the latest version
+    --files, -f Files to encode
   `,
   {
     importMeta: import.meta,
@@ -25,27 +27,26 @@ Usage
     flags: {
       help: { type: "boolean", shortFlag: "h" },
       version: { type: "boolean", shortFlag: "v" },
-      upgrade: { type: "boolean", shortFlag: "u" },
+      files: { type: "string", shortFlag: "f", isMultiple: true, default: [] },
     },
   }
 );
 
-const upgrade = async () => {
-  const url = "https://registry.npmjs.org/hardbrake";
+const getFullPath = (givenPath: string) => {
+  let finalPath = givenPath;
+  if (path.isAbsolute(givenPath)) return finalPath;
+  finalPath = path.join(process.cwd(), givenPath);
 
-  const response = await fetch(url);
-  const data = await response.json();
-  const latestVersion = data["dist-tags"].latest;
-  const isLatest = latestVersion === cli.pkg.version;
+  const exists = fs.existsSync(finalPath);
+  if (!exists) throw new Error(`Path does not exist: ${finalPath}`);
 
-  if (isLatest) console.log(`You are already using the latest version: ${latestVersion}.`);
-  else console.log(`A new version ${latestVersion} is available. Run 'bun add -g hardbrake@${latestVersion}' to upgrade.`);
-
-  process.exit(0);
+  return finalPath;
 };
 
-if (cli.flags.upgrade) await upgrade();
-else console.log(`HardBrake v${cli.pkg.version}`);
+cli.flags.files = cli.flags.files.map(getFullPath);
 
 import hardbrake from "../src/index";
-await hardbrake();
+await hardbrake({
+  version: cli.pkg.version as string,
+  filePaths: cli.flags.files,
+});

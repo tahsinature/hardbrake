@@ -36,7 +36,7 @@ export const selectFiles = (supportedExtensions: string[]) => {
   let files = pickerMap[selectedFilePicker](supportedExtensions);
   if (files.length === 0) throw new Error("No files selected");
 
-  files = files.filter((file) => supportedExtensions.includes(file.getExtension().toLowerCase()));
+  files = files.filter((file) => file.isSupported(supportedExtensions));
   if (files.length === 0) throw new Error("No supported files found");
 
   return files;

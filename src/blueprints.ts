@@ -17,6 +17,8 @@ export class File {
   };
 
   constructor(fullPath: string) {
+    if (!File.exists(fullPath)) throw new Error(`File not found: ${fullPath}`);
+
     this.originalFullPath = fullPath;
     this.dir = path.dirname(fullPath);
     this.baseName = path.basename(fullPath, path.extname(fullPath));
@@ -46,8 +48,16 @@ export class File {
     return "unknown";
   }
 
+  static exists(path: string) {
+    return fs.existsSync(path);
+  }
+
+  isSupported(exts: string[]) {
+    return exts.includes(this.getExtension());
+  }
+
   getExtension() {
-    return path.extname(this.originalFullPath).slice(1);
+    return path.extname(this.originalFullPath).slice(1).toLowerCase();
   }
 
   createLabDir() {
