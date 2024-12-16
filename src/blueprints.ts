@@ -47,6 +47,10 @@ export class File {
     return "unknown";
   }
 
+  getExtension() {
+    return path.extname(this.originalFullPath).slice(1);
+  }
+
   createLabDir() {
     const tmpDir = os.tmpdir();
     const dirName = `hardbrake_${this.alias}`;

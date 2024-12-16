@@ -1,18 +1,6 @@
 import path from "path";
 import fs from "fs";
 import { getPresets, runShellCommandAndReturnOutput, runShellCommandSimple } from "./utils";
-import { File } from "./blueprints";
-
-export const askFiles = (supportedExtensions: string[]) => {
-  const dir = askFolderPath();
-  const files = fs.readdirSync(dir);
-  const videos = files.filter((file) => supportedExtensions.includes(file.split(".").pop() || ""));
-  if (videos.length === 0) throw new Error("No files found in the folder");
-  const selectedVids = askFilter("Choose videos", videos, { min: 1 });
-  if (selectedVids.length === 0) throw new Error("No files selected");
-
-  return selectedVids.map((file) => new File(path.join(dir, file)));
-};
 
 export const askFolderPath = () => {
   console.log("Select a directory or, a file. If a file is selected, the parent directory will be used.");

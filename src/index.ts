@@ -1,23 +1,24 @@
 import { Operations } from "./types";
-import { askBoolean, askChoose, askFiles, askFilter, askPreset, showErrorAndExit, showNotice } from "./prompts";
+import { askBoolean, askChoose, askFilter, askPreset, showErrorAndExit, showNotice } from "./prompts";
 import { compressVideo, compressAudio } from "./engine";
 import { checkRequiredBinaries } from "./check";
 import { File } from "./blueprints";
+import { selectFiles } from "./file-selection";
 
 process.on("uncaughtException", (error) => {
   // console.log(error.stack);
-  showErrorAndExit([error.message, error.stack?.toString() || ""]);
+  showErrorAndExit([error.message]);
 });
 
 process.on("unhandledRejection", (error) => {
-  console.log(error);
+  // console.log(error);
   showErrorAndExit([error as string]);
 });
 
 const audioCompress = async () => {
   checkRequiredBinaries(Operations.AUDIO_COMPRESS);
 
-  const files = askFiles(File.exts.audio);
+  const files = selectFiles(File.exts.audio);
   const bitrate = askFilter("Select a bitrate", ["16k", "32k", "64k", "128k", "256k", "320k"], { limit: 1, min: 1 });
 
   await compressAudio(files, bitrate[0]);
@@ -26,7 +27,7 @@ const audioCompress = async () => {
 const videoCompress = async () => {
   checkRequiredBinaries(Operations.VIDEO_COMPRESS);
 
-  const files = askFiles(File.exts.video);
+  const files = selectFiles(File.exts.video);
   const preset = askPreset();
   const keepAudio = askBoolean("Do you want to keep the audio?", "true");
 
