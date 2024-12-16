@@ -1,6 +1,5 @@
 import path from "path";
 import fs from "fs";
-import moment from "moment";
 import os from "os";
 import { createDirOvewriteRecursive, getFileSizeInMB } from "./utils";
 
@@ -13,7 +12,7 @@ export class File {
   outputFullPath = null as string | null;
 
   static exts = {
-    video: ["mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "m4v", "lrf"],
+    video: ["mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "m4v", "lrf", "mov"],
     audio: ["mp3", "wav", "flac", "m4a", "aac", "ogg", "wma", "aiff", "alac"],
   };
 
