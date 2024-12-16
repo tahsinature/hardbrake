@@ -32,6 +32,7 @@ let selectedFilePicker: string = null as any;
 export const selectFiles = (supportedExtensions: string[]) => {
   const choice = askChoose("Select a file manager", Object.keys(pickerMap));
   selectedFilePicker = choice[0];
+  if (!selectedFilePicker) throw new Error("No file picker selected");
 
   let files = pickerMap[selectedFilePicker](supportedExtensions);
   if (files.length === 0) throw new Error("No files selected");
