@@ -68,17 +68,19 @@ export const escapePath = (path: string) => {
 };
 
 export const createDirOvewriteRecursive = (dir: string) => {
-  if (!dir) return;
-
-  fs.existsSync(dir) &&
-    fs.rmdirSync(dir, {
-      recursive: true,
-    });
-
+  fs.existsSync(dir) && fs.rmdirSync(dir, { recursive: true });
   fs.mkdirSync(dir, { recursive: true });
+  return dir;
 };
 
 export const checkIfBinaryExists = (binary: string) => {
   const lines = runShellCommandAndReturnOutput(`which ${binary}`);
   return lines.length > 0;
+};
+
+export const getFileSizeInMB = (filePath: string): number => {
+  if (!fs.existsSync(filePath)) throw new Error(`File not found: ${filePath}`);
+
+  const longNum = fs.statSync(filePath).size / 1024 / 1024;
+  return parseFloat(longNum.toFixed(2));
 };

@@ -25,11 +25,6 @@ const requiredBinariesForAudio: Binary[] = [
     purpose: "FFmpeg to encode audio files.",
     howTo: `See github: https://github.com/FFmpeg/FFmpeg and find installation instructions for your OS.`,
   },
-  {
-    name: "split",
-    purpose: "To split files.",
-    howTo: `Search google and install split for your OS.`,
-  },
 ];
 
 const mappedByOp = {
