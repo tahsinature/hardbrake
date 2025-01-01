@@ -6,7 +6,7 @@ import { checkIfBinaryExists, runShellCommandAndReturnOutput } from "./utils";
 
 const getSupportedFilesFromCurrentDir = (supportedExtensions: string[]) => {
   const fileNames = fs.readdirSync(process.cwd());
-  const supportedFiles = fileNames.filter((fileName) => supportedExtensions.includes(fileName.split(".").pop() || ""));
+  const supportedFiles = fileNames.filter((fileName) => supportedExtensions.includes(fileName.split(".").pop()?.toLowerCase() || ""));
 
   if (supportedFiles.length === 0) throw new Error("No files found in the folder");
 
