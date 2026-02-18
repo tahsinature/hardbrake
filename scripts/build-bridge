@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Build the hardbrake-core sidecar binary for the current platform.
+# The compiled binary is placed in gui/src-tauri/binaries/ with the
+# Tauri-required target-triple suffix.
+#
+# Usage: ./scripts/build-bridge
+#
+# On Windows, run via Git Bash or WSL, or use: bun run build-bridge
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+BINARIES_DIR="$ROOT_DIR/gui/src-tauri/binaries"
+
+# Detect target triple (same convention Tauri uses)
+ARCH="$(uname -m)"
+OS="$(uname -s)"
+
+case "$ARCH" in
+  x86_64)  RUST_ARCH="x86_64" ;;
+  arm64)   RUST_ARCH="aarch64" ;;
+  aarch64) RUST_ARCH="aarch64" ;;
+  *)       echo "Unsupported architecture: $ARCH"; exit 1 ;;
+esac
+
+EXE_SUFFIX=""
+case "$OS" in
+  Darwin)            TARGET_TRIPLE="${RUST_ARCH}-apple-darwin" ;;
+  Linux)             TARGET_TRIPLE="${RUST_ARCH}-unknown-linux-gnu" ;;
+  MINGW*|MSYS*|CYGWIN*|Windows_NT)
+                     TARGET_TRIPLE="${RUST_ARCH}-pc-windows-msvc"
+                     EXE_SUFFIX=".exe" ;;
+  *)                 echo "Unsupported OS: $OS"; exit 1 ;;
+esac
+
+mkdir -p "$BINARIES_DIR"
+
+OUTPUT="$BINARIES_DIR/hardbrake-core-${TARGET_TRIPLE}${EXE_SUFFIX}"
+
+echo "Building hardbrake-core sidecar..."
+echo "  Source:  src/bridge.ts"
+echo "  Output:  $OUTPUT"
+echo "  Target:  $TARGET_TRIPLE"
+
+cd "$ROOT_DIR"
+bun build src/bridge.ts --compile --outfile "$OUTPUT"
+
+chmod +x "$OUTPUT" 2>/dev/null || true
+
+echo ""
+echo "Done! Sidecar binary: $OUTPUT"

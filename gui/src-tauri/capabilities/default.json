@@ -1,0 +1,24 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Capability for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "dialog:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [{ "name": "binaries/hardbrake-core", "sidecar": true, "args": true }]
+    },
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [{ "name": "binaries/hardbrake-core", "sidecar": true, "args": true }]
+    },
+    "shell:allow-stdin-write",
+    "shell:allow-kill",
+    "shell:allow-open"
+  ]
+}

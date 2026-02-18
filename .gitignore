@@ -136,3 +136,17 @@ dist
 
 # ---- Custom ----
 playground
+
+# ---- Tauri / Rust ----
+# Rust build output (gui/src-tauri/target/)
+**/target/
+# Tauri auto-generated schema files
+**/gen/schemas
+
+# ---- Sidecar binaries ----
+# Platform-compiled sidecars (rebuilt per machine)
+gui/src-tauri/binaries/hardbrake-core-*
+
+# ---- Frontend build output ----
+gui/dist/
+gui/dist-ssr/

@@ -1,0 +1,4 @@
+# Sidecar binaries (platform-specific, downloaded separately)
+HandBrakeCLI-*
+ffmpeg-*
+*.exe
