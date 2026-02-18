@@ -206,13 +206,18 @@ jobs:
       - name: List artifacts
         run: find artifacts -type f | head -50
 
-      - name: Create draft release
+      - name: Get short SHA
+        id: sha
+        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+      - name: Create prerelease
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: dev-${{ github.sha }}
-          name: "Dev Build (${{ github.sha }})"
-          draft: true
+          tag_name: dev-${{ steps.sha.outputs.short }}
+          name: "Dev Build ${{ steps.sha.outputs.short }}"
+          draft: false
           prerelease: true
+          make_latest: false
           files: artifacts/**/*
           generate_release_notes: true
         env:
