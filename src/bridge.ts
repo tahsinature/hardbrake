@@ -83,7 +83,7 @@ const installDep = (depName: string): Promise<void> => {
     };
 
     const wingetMap: PkgMap = {
-      HandBrakeCLI: { bin: "winget", args: ["install", "--id", "HandBrake.HandBrake", "-e", "--accept-source-agreements", "--accept-package-agreements"], desc: "HandBrake (provides HandBrakeCLI)" },
+      HandBrakeCLI: { bin: "winget", args: ["install", "--id", "HandBrake.HandBrakeCLI", "-e", "--accept-source-agreements", "--accept-package-agreements"], desc: "HandBrakeCLI" },
       ffmpeg: { bin: "winget", args: ["install", "--id", "Gyan.FFmpeg", "-e", "--accept-source-agreements", "--accept-package-agreements"], desc: "ffmpeg" },
     };
 
