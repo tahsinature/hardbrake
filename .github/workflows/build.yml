@@ -1,0 +1,216 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [feat-tauri]
+
+# Cancel in-flight runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # needed to create releases
+
+jobs:
+  # ──────────────────────────────────────────────
+  # macOS  (universal: arm64 + x86_64)
+  # ──────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64-apple-darwin
+            bun_target: "" # native on arm64 runner
+          - arch: x86_64-apple-darwin
+            bun_target: ""
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.arch }}
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: bun install
+
+      - name: Install GUI dependencies
+        working-directory: gui
+        run: bun install
+
+      - name: Build sidecar (hardbrake-core)
+        run: |
+          mkdir -p gui/src-tauri/binaries
+          bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
+          chmod +x "gui/src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ""
+        with:
+          projectPath: gui
+          args: --target ${{ matrix.arch }}
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardbrake-macos-${{ matrix.arch }}
+          path: |
+            gui/src-tauri/target/${{ matrix.arch }}/release/bundle/dmg/*.dmg
+            gui/src-tauri/target/${{ matrix.arch }}/release/bundle/macos/*.app
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────
+  # Windows  (x86_64)
+  # ──────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: bun install
+
+      - name: Install GUI dependencies
+        working-directory: gui
+        run: bun install
+
+      - name: Build sidecar (hardbrake-core)
+        shell: bash
+        run: |
+          mkdir -p gui/src-tauri/binaries
+          bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-x86_64-pc-windows-msvc.exe"
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ""
+        with:
+          projectPath: gui
+          args: --target x86_64-pc-windows-msvc
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardbrake-windows-x86_64
+          path: |
+            gui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+            gui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+          if-no-files-found: error
+
+  # ──────────────────────────────────────────────
+  # Linux  (placeholder — uncomment when ready)
+  # ──────────────────────────────────────────────
+  # build-linux:
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - name: Install system deps
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y \
+  #           libwebkit2gtk-4.1-dev \
+  #           libappindicator3-dev \
+  #           librsvg2-dev \
+  #           patchelf \
+  #           libgtk-3-dev \
+  #           libssl-dev
+  #
+  #     - name: Install Rust
+  #       uses: dtolnay/rust-toolchain@stable
+  #
+  #     - name: Install Bun
+  #       uses: oven-sh/setup-bun@v2
+  #
+  #     - name: Install Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #
+  #     - name: Install root dependencies
+  #       run: bun install
+  #
+  #     - name: Install GUI dependencies
+  #       working-directory: gui
+  #       run: bun install
+  #
+  #     - name: Build sidecar (hardbrake-core)
+  #       run: |
+  #         mkdir -p gui/src-tauri/binaries
+  #         bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
+  #         chmod +x "gui/src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
+  #
+  #     - name: Build Tauri app
+  #       uses: tauri-apps/tauri-action@v0
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         TAURI_SIGNING_PRIVATE_KEY: ""
+  #       with:
+  #         projectPath: gui
+  #
+  #     - name: Upload Linux artifacts
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: hardbrake-linux-x86_64
+  #         path: |
+  #           gui/src-tauri/target/release/bundle/deb/*.deb
+  #           gui/src-tauri/target/release/bundle/appimage/*.AppImage
+  #         if-no-files-found: error
+
+  # ──────────────────────────────────────────────
+  # Collect all artifacts into a draft release
+  # ──────────────────────────────────────────────
+  release:
+    needs: [build-macos, build-windows] # add build-linux when ready
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/feat-tauri'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: false
+
+      - name: List artifacts
+        run: find artifacts -type f | head -50
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: dev-${{ github.sha }}
+          name: "Dev Build (${{ github.sha }})"
+          draft: true
+          prerelease: true
+          files: artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
