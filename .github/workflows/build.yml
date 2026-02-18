@@ -61,15 +61,18 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ""
         with:
           projectPath: gui
-          args: --target ${{ matrix.arch }}
+          args: --target ${{ matrix.arch }} --bundles app
+
+      - name: Zip .app bundle for distribution
+        run: |
+          cd gui/src-tauri/target/${{ matrix.arch }}/release/bundle/macos
+          zip -r HardBrake-${{ matrix.arch }}.zip HardBrake.app
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
           name: hardbrake-macos-${{ matrix.arch }}
-          path: |
-            gui/src-tauri/target/${{ matrix.arch }}/release/bundle/dmg/*.dmg
-            gui/src-tauri/target/${{ matrix.arch }}/release/bundle/macos/*.app
+          path: gui/src-tauri/target/${{ matrix.arch }}/release/bundle/macos/HardBrake-${{ matrix.arch }}.zip
           if-no-files-found: error
 
   # ──────────────────────────────────────────────
