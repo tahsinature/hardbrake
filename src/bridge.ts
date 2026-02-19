@@ -136,47 +136,81 @@ const installDep = (depName: string): Promise<void> => {
       return;
     }
 
-    // Resolve the binary path
-    const binPath = findBinaryPath(entry.bin);
-    if (!binPath && entry.bin !== "sudo") {
-      reject(new Error(`Package manager '${pmName}' not found in PATH.`));
+    const tryInstall = (info: PkgInfo, pm: string): Promise<void> => {
+      return new Promise((res, rej) => {
+        const bp = findBinaryPath(info.bin);
+        if (!bp && info.bin !== "sudo") {
+          rej(new Error(`Package manager '${pm}' not found in PATH.`));
+          return;
+        }
+        emit({ type: "install_start", dep: depName, desc: info.desc, pm });
+
+        const child = spawn(bp ?? info.bin, info.args, {
+          env: { ...process.env },
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+
+        child.stdout.on("data", (data: Buffer) => {
+          const lines = data.toString().split("\n").filter(Boolean);
+          for (const line of lines) {
+            emit({ type: "install_log", dep: depName, line });
+          }
+        });
+
+        child.stderr.on("data", (data: Buffer) => {
+          const lines = data.toString().split("\n").filter(Boolean);
+          for (const line of lines) {
+            emit({ type: "install_log", dep: depName, line });
+          }
+        });
+
+        child.on("close", (code) => {
+          if (code === 0) {
+            res();
+          } else {
+            rej(new Error(`${pm} exited with code ${code}`));
+          }
+        });
+      });
+    };
+
+    // On Windows: try winget first, fallback to choco if winget fails
+    if (IS_WINDOWS && pmName === "winget" && findBinaryPath("choco")) {
+      tryInstall(entry, pmName)
+        .then(() => {
+          emit({ type: "install_done", dep: depName, success: true });
+          resolve();
+        })
+        .catch((wingetErr) => {
+          emit({ type: "install_log", dep: depName, line: `winget failed (${wingetErr.message}), trying Chocolatey...` });
+          const chocoEntry = chocoMap[depName];
+          if (!chocoEntry) {
+            emit({ type: "install_done", dep: depName, success: false, error: wingetErr.message });
+            reject(wingetErr);
+            return;
+          }
+          tryInstall(chocoEntry, "choco")
+            .then(() => {
+              emit({ type: "install_done", dep: depName, success: true });
+              resolve();
+            })
+            .catch((chocoErr) => {
+              emit({ type: "install_done", dep: depName, success: false, error: `winget and choco both failed` });
+              reject(new Error(`winget failed (${wingetErr.message}), choco failed (${chocoErr.message})`));
+            });
+        });
       return;
     }
 
-    emit({ type: "install_start", dep: depName, desc: entry.desc, pm: pmName });
-
-    const child = spawn(binPath ?? entry.bin, entry.args, {
-      env: { ...process.env },
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-
-    child.stdout.on("data", (data: Buffer) => {
-      const lines = data.toString().split("\n").filter(Boolean);
-      for (const line of lines) {
-        emit({ type: "install_log", dep: depName, line });
-      }
-    });
-
-    child.stderr.on("data", (data: Buffer) => {
-      const lines = data.toString().split("\n").filter(Boolean);
-      for (const line of lines) {
-        emit({ type: "install_log", dep: depName, line });
-      }
-    });
-
-    child.on("close", (code) => {
-      if (code === 0) {
+    tryInstall(entry, pmName)
+      .then(() => {
         emit({ type: "install_done", dep: depName, success: true });
         resolve();
-      } else {
-        emit({ type: "install_done", dep: depName, success: false, error: `${pmName} exited with code ${code}` });
-        reject(new Error(`${pmName} install failed with code ${code}`));
-      }
-    });
-
-    child.on("error", (err) => {
-      reject(err);
-    });
+      })
+      .catch((err) => {
+        emit({ type: "install_done", dep: depName, success: false, error: err.message });
+        reject(err);
+      });
   });
 };
 
