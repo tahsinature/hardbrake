@@ -1,0 +1,66 @@
+name: Release CLI
+
+on:
+  push:
+    tags:
+      - "*" # triggers on version tags from `bun run bump`
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: darwin-arm64
+            artifact: hardbrake-darwin-arm64
+          - os: macos-13
+            target: darwin-x64
+            artifact: hardbrake-darwin-x64
+          - os: ubuntu-latest
+            target: linux-x64
+            artifact: hardbrake-linux-x64
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build standalone binary
+        run: |
+          bun build bin/hardbrake --compile --outfile hardbrake
+          chmod +x hardbrake
+
+      - name: Create tarball
+        run: tar -czf ${{ matrix.artifact }}.tar.gz hardbrake
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            hardbrake-darwin-arm64.tar.gz
+            hardbrake-darwin-x64.tar.gz
+            hardbrake-linux-x64.tar.gz
