@@ -9,7 +9,14 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CURRENT=$(jq -r .version "$ROOT/package.json")
+# ── Determine current version ─────────────────────────────────
+if [ -n "${CI:-}" ]; then
+  # In CI, derive from the latest git tag to avoid "tag already exists"
+  LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+  CURRENT="${LATEST_TAG#v}"
+else
+  CURRENT=$(jq -r .version "$ROOT/package.json")
+fi
 
 # ── --set-version: just write a version into all files ────────
 if [ "${1:-}" = "--set-version" ] && [ -n "${2:-}" ]; then

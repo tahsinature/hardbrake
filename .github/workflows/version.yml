@@ -20,19 +20,31 @@ jobs:
     if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Bump version
         id: bump
         run: ./scripts/bump
 
+      - name: Commit version bump
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
+          git commit -m "chore(release): ${VERSION}"
+          git push origin master
+
       - name: Create tag & release
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
+          NEW_SHA=$(git rev-parse HEAD)
           gh api repos/${{ github.repository }}/git/refs \
             -f ref="refs/tags/v${VERSION}" \
-            -f sha="${{ github.sha }}"
+            -f sha="${NEW_SHA}"
           gh release create "v${VERSION}" \
-            --target "${{ github.sha }}" \
+            --target "${NEW_SHA}" \
             --title "v${VERSION}" \
             --generate-notes
         env:
