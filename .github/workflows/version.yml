@@ -1,7 +1,7 @@
 # Analyzes conventional commits on push to master to determine
-# the next version. Bumps package.json / tauri.conf.json /
-# Cargo.toml, creates a git tag + GitHub release, then triggers
-# the gui-release and cli-release workflows.
+# the next version. Creates a tag + GitHub release via API
+# (no push to master needed — works with branch protection).
+# Then triggers the gui-release and cli-release workflows.
 name: Version & Release
 
 on:
@@ -15,37 +15,35 @@ concurrency:
 
 permissions:
   contents: write
-  actions: write # needed for gh workflow run
+  actions: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Skip commits made by this workflow
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump version
+      - name: Determine version bump
         id: bump
         run: ./scripts/bump
 
-      - name: Push commit & tag
+      - name: Create tag via API
         if: steps.bump.outputs.version != ''
         run: |
-          git push origin master
-          git push origin "v${{ steps.bump.outputs.version }}"
+          gh api repos/${{ github.repository }}/git/refs \
+            -f ref="refs/tags/v${{ steps.bump.outputs.version }}" \
+            -f sha="${{ github.sha }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub release
         if: steps.bump.outputs.version != ''
         run: |
           gh release create "v${{ steps.bump.outputs.version }}" \
+            --target "${{ github.sha }}" \
             --title "v${{ steps.bump.outputs.version }}" \
             --notes "${{ steps.bump.outputs.notes }}"
         env:

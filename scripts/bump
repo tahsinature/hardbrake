@@ -4,15 +4,33 @@
 #
 # CI mode  (CI=true) : reads conventional commits since the last
 #                       tag to decide major / minor / patch.
-# Interactive mode    : prompts for the bump type.
+#                       Outputs version info but does NOT commit
+#                       or push (branch protection safe).
+# Interactive mode    : prompts for the bump type, updates files,
+#                       commits + tags. You push manually.
 #
-# After bumping, creates a git commit + tag locally.
-# The caller (version.yml / human) is responsible for pushing.
+# Usage:
+#   Interactive : ./scripts/bump
+#   CI          : CI=true ./scripts/bump
+#   Inject only : ./scripts/bump --set-version 2.5.0
 # ────────────────────────────────────────────────────────────
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CURRENT=$(jq -r .version "$ROOT/package.json")
+
+# ── --set-version: just write a version into all files ────────
+if [ "${1:-}" = "--set-version" ] && [ -n "${2:-}" ]; then
+  NEW="$2"
+  echo "Setting version → $NEW"
+  tmp=$(mktemp)
+  jq --arg v "$NEW" '.version = $v' "$ROOT/package.json" > "$tmp" && mv "$tmp" "$ROOT/package.json"
+  tmp=$(mktemp)
+  jq --arg v "$NEW" '.version = $v' "$ROOT/src-tauri/tauri.conf.json" > "$tmp" && mv "$tmp" "$ROOT/src-tauri/tauri.conf.json"
+  sed -i.bak "s/^version = \".*\"/version = \"$NEW\"/" "$ROOT/src-tauri/Cargo.toml" && rm -f "$ROOT/src-tauri/Cargo.toml.bak"
+  echo "✓ v$NEW (files only, no commit)"
+  exit 0
+fi
 
 # ── Determine bump type ───────────────────────────────────────
 if [ -n "${CI:-}" ]; then
@@ -78,23 +96,24 @@ jq --arg v "$NEW" '.version = $v' "$ROOT/package.json" > "$tmp" && mv "$tmp" "$R
 tmp=$(mktemp)
 jq --arg v "$NEW" '.version = $v' "$ROOT/src-tauri/tauri.conf.json" > "$tmp" && mv "$tmp" "$ROOT/src-tauri/tauri.conf.json"
 
-tmp=$(mktemp)
-sed "s/^version = \".*\"/version = \"$NEW\"/" "$ROOT/src-tauri/Cargo.toml" > "$tmp" && mv "$tmp" "$ROOT/src-tauri/Cargo.toml"
+sed -i.bak "s/^version = \".*\"/version = \"$NEW\"/" "$ROOT/src-tauri/Cargo.toml" && rm -f "$ROOT/src-tauri/Cargo.toml.bak"
 
-# ── Git commit & tag ──────────────────────────────────────────
-git add "$ROOT/package.json" "$ROOT/src-tauri/tauri.conf.json" "$ROOT/src-tauri/Cargo.toml"
-git commit -m "chore(release): $NEW [skip ci]"
-git tag "v$NEW"
-
-echo "✓ v$NEW"
-
-# ── GitHub Actions outputs ────────────────────────────────────
-if [ -n "${GITHUB_OUTPUT:-}" ]; then
-  echo "version=$NEW" >> "$GITHUB_OUTPUT"
-  echo "tag=v$NEW" >> "$GITHUB_OUTPUT"
-  {
-    echo "notes<<EOF"
-    echo "${NOTES:-Release v$NEW}"
-    echo "EOF"
-  } >> "$GITHUB_OUTPUT"
+if [ -n "${CI:-}" ]; then
+  # CI: don't commit — just output for the workflow
+  echo "✓ v$NEW (CI mode — no commit)"
+  if [ -n "${GITHUB_OUTPUT:-}" ]; then
+    echo "version=$NEW" >> "$GITHUB_OUTPUT"
+    echo "tag=v$NEW" >> "$GITHUB_OUTPUT"
+    {
+      echo "notes<<EOF"
+      echo "${NOTES:-Release v$NEW}"
+      echo "EOF"
+    } >> "$GITHUB_OUTPUT"
+  fi
+else
+  # Interactive: commit + tag
+  git add "$ROOT/package.json" "$ROOT/src-tauri/tauri.conf.json" "$ROOT/src-tauri/Cargo.toml"
+  git commit -m "chore(release): $NEW [skip ci]"
+  git tag "v$NEW"
+  echo "✓ v$NEW — now run: git push origin master --follow-tags"
 fi

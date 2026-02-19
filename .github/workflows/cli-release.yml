@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Inject version from tag
+        run: ./scripts/bump --set-version "${GITHUB_REF_NAME#v}"
+
       - name: Build standalone binary
         run: |
           bun build bin/hardbrake --compile --outfile hardbrake

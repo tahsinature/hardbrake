@@ -47,6 +47,9 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Inject version from tag
+        run: ./scripts/bump --set-version "${GITHUB_REF_NAME#v}"
+
       - name: Build sidecar (hardbrake-core)
         run: |
           mkdir -p src-tauri/binaries
@@ -90,6 +93,10 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+
+      - name: Inject version from tag
+        shell: bash
+        run: ./scripts/bump --set-version "${GITHUB_REF_NAME#v}"
 
       - name: Build sidecar (hardbrake-core)
         shell: bash
