@@ -1,8 +1,9 @@
-name: Bun Publish
+# Publishes the hardbrake npm package to the registry so users
+# can install via: bun install --global hardbrake
+name: NPM Publish
 
 on:
-  push:
-    branches: [master]
+  workflow_dispatch: # manual trigger only — disabled for now
 
 jobs:
   build:

@@ -4,6 +4,7 @@ import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { getVersion } from "@tauri-apps/api/app";
 import "./App.css";
 
 type Mode = "home" | "video" | "audio";
@@ -68,6 +69,7 @@ function App() {
   const [installError, setInstallError] = useState<string | null>(null);
 
   // Update state
+  const [appVersion, setAppVersion] = useState<string>("");
   const [updateAvailable, setUpdateAvailable] = useState<{ version: string; body: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState("");
@@ -174,6 +176,11 @@ function App() {
   useEffect(() => {
     recheckBinaries();
   }, [recheckBinaries]);
+
+  // ─── Fetch app version on mount ────────────────────────
+  useEffect(() => {
+    getVersion().then(setAppVersion).catch(console.error);
+  }, []);
 
   // ─── Check for updates on mount ────────────────────────
   useEffect(() => {
@@ -545,13 +552,13 @@ function App() {
         {dragOverlay}
         {dragErrorToast}
         <h1 className="title">HardBrake</h1>
-        <p className="subtitle">Video & Audio Compression</p>
+        <p className="subtitle">Video & Audio Compression{appVersion && <span className="version-badge">v{appVersion}</span>}</p>
 
         {/* ─── Update available banner ─────────────────── */}
         {updateAvailable && !isUpdating && (
           <div className="update-banner">
             <p>
-              <strong>Update available:</strong> v{updateAvailable.version}
+              <strong>Update available:</strong> v{appVersion} → v{updateAvailable.version}
             </p>
             {updateAvailable.body && <p className="update-notes">{updateAvailable.body}</p>}
             <div className="update-actions">

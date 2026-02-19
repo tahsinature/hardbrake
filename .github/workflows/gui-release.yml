@@ -1,10 +1,13 @@
-name: Build & Release
+# Builds the Tauri desktop app (macOS + Windows) and publishes
+# .dmg / .app / .exe installers to a GitHub release.
+# Triggered by version tags created by semantic-release.
+name: GUI Desktop Release
 
 on:
   push:
-    branches: [master]
+    tags: ["v*"]
 
-# Cancel in-flight runs for the same branch
+# Cancel in-flight runs for the same ref
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,22 +17,10 @@ permissions:
 
 jobs:
   # ──────────────────────────────────────────────
-  # Compute a short tag shared by all build jobs
-  # ──────────────────────────────────────────────
-  prepare:
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.tag.outputs.tag }}
-    steps:
-      - id: tag
-        run: echo "tag=dev-$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
-
-  # ──────────────────────────────────────────────
   # macOS  (arm64 + x86_64)
   # tauri-action handles release + updater JSON
   # ──────────────────────────────────────────────
   build-macos:
-    needs: prepare
     runs-on: macos-latest
     strategy:
       matrix:
@@ -68,9 +59,9 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ needs.prepare.outputs.tag }}
-          releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
-          releaseBody: "Automated dev build from master branch."
+          tagName: ${{ github.ref_name }}
+          releaseName: "HardBrake ${{ github.ref_name }}"
+          releaseBody: "See [CHANGELOG.md](https://github.com/tahsinature/hardbrake/blob/master/CHANGELOG.md) for details."
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.arch }} --bundles app,dmg
@@ -79,7 +70,6 @@ jobs:
   # Windows  (x86_64)
   # ──────────────────────────────────────────────
   build-windows:
-    needs: prepare
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -113,9 +103,9 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ needs.prepare.outputs.tag }}
-          releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
-          releaseBody: "Automated dev build from master branch."
+          tagName: ${{ github.ref_name }}
+          releaseName: "HardBrake ${{ github.ref_name }}"
+          releaseBody: "See [CHANGELOG.md](https://github.com/tahsinature/hardbrake/blob/master/CHANGELOG.md) for details."
           releaseDraft: false
           prerelease: false
           args: --target x86_64-pc-windows-msvc
@@ -167,8 +157,8 @@ jobs:
   #         TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
   #         TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
   #       with:
-  #         tagName: ${{ needs.prepare.outputs.tag }}
-  #         releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
-  #         releaseBody: "Automated dev build from master branch."
+  #         tagName: ${{ github.ref_name }}
+  #         releaseName: "HardBrake ${{ github.ref_name }}"
+  #         releaseBody: "See [CHANGELOG.md](https://github.com/tahsinature/hardbrake/blob/master/CHANGELOG.md) for details."
   #         releaseDraft: false
   #         prerelease: false

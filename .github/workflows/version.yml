@@ -1,0 +1,47 @@
+# Runs semantic-release on push to master. Analyzes conventional
+# commits to determine the next version, updates package.json /
+# tauri.conf.json / Cargo.toml, generates CHANGELOG.md, creates
+# a git tag + GitHub release. The tag then triggers gui-release
+# and cli-release workflows.
+name: Version & Release
+
+on:
+  push:
+    branches: [master]
+
+# Avoid duplicate runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Skip commits made by semantic-release itself
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run semantic-release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

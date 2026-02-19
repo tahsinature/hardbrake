@@ -54,6 +54,19 @@ body {
   margin-bottom: 2rem;
 }
 
+.version-badge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  background: rgba(139, 92, 246, 0.15);
+  color: rgba(139, 92, 246, 0.9);
+  border-radius: 6px;
+  vertical-align: middle;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 /* ─── Update banner ─────────────────────────────────────── */
 .update-banner {
   width: 100%;
