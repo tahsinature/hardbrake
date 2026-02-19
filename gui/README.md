@@ -6,10 +6,10 @@ Built with [Tauri v2](https://tauri.app/) + React + TypeScript.
 
 ## Quick Setup (one command)
 
-### Windows
+### Windows (works in CMD, PowerShell, or Git Bash)
 
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/setup.ps1
+```
+scripts\setup.bat
 ```
 
 ### macOS / Linux
@@ -18,7 +18,7 @@ powershell -ExecutionPolicy Bypass -File scripts/setup.ps1
 bash scripts/setup.sh
 ```
 
-These scripts install **everything** needed (Rust, Bun, Node.js, Tauri CLI, system libraries) and build the app.
+These scripts install **everything** needed (Rust, Bun, Node.js, VS Build Tools, Tauri CLI, system libraries) and build the app.
 
 ---
 
@@ -43,10 +43,11 @@ bun install
 cd gui && npm install && cd ..
 
 # 3. Build the sidecar binary
-./scripts/build-bridge
+./scripts/build-bridge          # macOS / Linux
+scripts\build-bridge.bat        # Windows (any shell)
 
 # 4. Build the desktop app
-cd gui && npm run tauri build
+cd gui && npx tauri build
 ```
 
 ### Build Output
@@ -64,10 +65,11 @@ cd gui && npm run tauri build
 
 ```sh
 # Build sidecar first
-./scripts/build-bridge
+./scripts/build-bridge          # macOS / Linux
+scripts\build-bridge.bat        # Windows (any shell)
 
 # Start dev server with hot reload
-cd gui && npm run tauri dev
+cd gui && npx tauri dev
 ```
 
 ## Architecture
