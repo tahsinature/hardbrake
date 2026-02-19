@@ -551,7 +551,7 @@ function App() {
       <main className="container">
         {dragOverlay}
         {dragErrorToast}
-        <h1 className="title">HardBrake</h1>
+        <h1 className="title">HardBrake v1</h1>
         <p className="subtitle">Video & Audio Compression{appVersion && <span className="version-badge">v{appVersion}</span>}</p>
 
         {/* ─── Update available banner ─────────────────── */}
