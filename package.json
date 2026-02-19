@@ -35,6 +35,7 @@
     "split-file": "^2.3.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.0",
     "@tauri-apps/cli": "^2",
     "@types/bun": "latest",
     "@types/cli-progress": "^3.11.6",
@@ -43,6 +44,7 @@
     "@types/react-dom": "^19.1.6",
     "@types/split-file": "^2.3.3",
     "@vitejs/plugin-react": "^4.6.0",
+    "tailwindcss": "^4.2.0",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }

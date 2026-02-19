@@ -215,8 +215,13 @@ function App() {
       }
     } catch (e) {
       console.error("Update check failed:", e);
-      setUpdateCheckResult("Failed to check for updates.");
-      setTimeout(() => setUpdateCheckResult(null), 4000);
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("404") || msg.includes("Not Found") || msg.includes("network") || msg.includes("fetch")) {
+        setUpdateCheckResult("Update info not available yet. A new release may still be building.");
+      } else {
+        setUpdateCheckResult("Couldn't check for updates. Please try again later.");
+      }
+      setTimeout(() => setUpdateCheckResult(null), 6000);
     } finally {
       setIsCheckingUpdate(false);
     }
@@ -536,9 +541,9 @@ function App() {
 
   if (!binariesChecked) {
     return (
-      <main className="container">
+      <main className="flex min-h-screen items-center justify-center bg-[#0f0f0f]">
         {dragOverlay}
-        <p className="loading">Checking system dependencies...</p>
+        <p className="text-base text-gray-500 animate-pulse">Checking system dependencies...</p>
       </main>
     );
   }
@@ -548,68 +553,76 @@ function App() {
 
   if (mode === "home") {
     return (
-      <main className="container">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-[#0f0f0f] px-8 py-16">
         {dragOverlay}
         {dragErrorToast}
-        <h1 className="title">HardBrake v2</h1>
-        <p className="subtitle">Video & Audio Compression{appVersion && <span className="version-badge">v{appVersion}</span>}</p>
+
+        {/* ─── Hero ─────────────────────────────────────── */}
+        <div className="flex flex-col items-center gap-4 mb-10">
+          <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">HardBrake</h1>
+          <div className="flex items-center gap-3">
+            <p className="text-lg text-gray-400">Video &amp; Audio Compression</p>
+            {appVersion && <span className="rounded-md border border-gray-600 bg-transparent px-2.5 py-0.5 text-sm font-medium text-gray-400">v{appVersion}</span>}
+          </div>
+        </div>
 
         {/* ─── Update available banner ─────────────────── */}
         {updateAvailable && !isUpdating && (
-          <div className="update-banner">
-            <p>
+          <div className="w-full max-w-lg rounded-xl border border-purple-500/30 bg-purple-500/10 p-5 mb-8 text-left">
+            <p className="text-base text-gray-200 mb-4">
               <strong>Update available:</strong> v{appVersion} → v{updateAvailable.version}
             </p>
-            {updateAvailable.body && <p className="update-notes">{updateAvailable.body}</p>}
-            <div className="update-actions">
-              <button className="btn small" onClick={doUpdate}>
+            <div className="flex gap-3">
+              <button className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors" onClick={doUpdate}>
                 Update &amp; Restart
               </button>
-              <button className="btn small secondary" onClick={() => setUpdateAvailable(null)}>
+              <button className="rounded-lg border border-gray-600 bg-transparent px-4 py-2 text-sm text-gray-400 hover:bg-white/8 transition-colors" onClick={() => setUpdateAvailable(null)}>
                 Later
               </button>
             </div>
           </div>
         )}
         {isUpdating && (
-          <div className="update-banner updating">
-            <p>{updateProgress || "Updating..."}</p>
+          <div className="w-full max-w-lg rounded-xl border border-purple-500/20 bg-purple-500/8 p-5 mb-8">
+            <p className="text-base text-gray-400">{updateProgress || "Updating..."}</p>
           </div>
         )}
 
-        {/* ─── Check for updates button ────────────────── */}
+        {/* ─── Check for updates ───────────────────────── */}
         {!updateAvailable && !isUpdating && (
-          <div className="check-update-row">
-            <button className="btn small secondary" onClick={checkForUpdates} disabled={isCheckingUpdate}>
+          <div className="flex flex-col items-center gap-3 mb-8">
+            <button
+              className="rounded-lg border border-gray-600 bg-transparent px-5 py-2 text-sm text-gray-300 hover:bg-white/8 hover:border-gray-500 transition-colors disabled:opacity-40"
+              onClick={checkForUpdates}
+              disabled={isCheckingUpdate}
+            >
               {isCheckingUpdate ? "Checking..." : "Check for Updates"}
             </button>
-            {updateCheckResult && <span className="update-check-result">{updateCheckResult}</span>}
+            {updateCheckResult && <span className="text-sm text-gray-500">{updateCheckResult}</span>}
           </div>
         )}
 
         {/* ─── Installing overlay ───────────────────────── */}
         {installing && (
-          <div className="install-overlay">
-            <h3>Installing {installing}...</h3>
-            <div className="install-log-box">
+          <div className="w-full max-w-lg rounded-xl border border-[#2a2a4a] bg-[#1a1a2e] p-6 mb-8">
+            <h3 className="text-base font-semibold text-purple-400 mb-4">Installing {installing}...</h3>
+            <div className="rounded-lg bg-black/60 p-4 max-h-48 overflow-y-auto font-mono text-xs leading-snug text-gray-500 mb-3">
               {installLogs.map((line, i) => (
-                <p key={i} className="install-log-line">
+                <p key={i} className="whitespace-pre-wrap break-all">
                   {line}
                 </p>
               ))}
             </div>
-            <p className="install-hint">This may take a few minutes</p>
+            <p className="text-center text-sm text-gray-500">This may take a few minutes</p>
           </div>
         )}
 
         {/* ─── Install error ───────────────────────────── */}
         {installError && (
-          <div className="warning-box">
-            <p>
-              <strong>Installation failed:</strong>
-            </p>
-            <p>{installError}</p>
-            <button className="btn small" onClick={() => setInstallError(null)}>
+          <div className="w-full max-w-lg rounded-lg border border-amber-500 bg-amber-950/40 p-5 mb-8 text-base">
+            <p className="font-semibold mb-2">Installation failed:</p>
+            <p className="text-gray-400 mb-3">{installError}</p>
+            <button className="rounded-lg border border-gray-600 bg-transparent px-4 py-2 text-sm text-gray-400 hover:bg-white/8 transition-colors" onClick={() => setInstallError(null)}>
               Dismiss
             </button>
           </div>
@@ -617,44 +630,48 @@ function App() {
 
         {/* ─── Missing dependencies ────────────────────── */}
         {!installing && missingBinaries.length > 0 && (
-          <div className="warning-box">
-            <p>
-              <strong>Missing dependencies:</strong>
-            </p>
+          <div className="w-full max-w-lg rounded-lg border border-amber-500 bg-amber-950/40 p-5 mb-8 text-base">
+            <p className="font-semibold mb-3">Missing dependencies:</p>
             {missingBinaries.map(([name]) => (
-              <div key={name} className="dep-row">
-                <span>
-                  &bull; <code>{name}</code> not found.
+              <div key={name} className="flex items-center justify-between gap-3 mb-2">
+                <span className="text-gray-400">
+                  &bull; <code className="text-sm">{name}</code> not found.
                 </span>
                 {name === "HandBrakeCLI" ? (
-                  <button className="btn small install-btn" onClick={() => installDep(name)} disabled={!!installing}>
+                  <button
+                    className="shrink-0 rounded-lg bg-purple-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-40"
+                    onClick={() => installDep(name)}
+                    disabled={!!installing}
+                  >
                     Install from handbrake.fr
                   </button>
                 ) : packageManager ? (
-                  <button className="btn small install-btn" onClick={() => installDep(name)} disabled={!!installing}>
+                  <button
+                    className="shrink-0 rounded-lg bg-purple-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-40"
+                    onClick={() => installDep(name)}
+                    disabled={!!installing}
+                  >
                     Install via {packageManager}
                   </button>
                 ) : (
-                  <span className="dep-manual">
-                    <a href="https://ffmpeg.org/download.html" target="_blank">
-                      Manual download
-                    </a>
-                  </span>
+                  <a href="https://ffmpeg.org/download.html" target="_blank" className="text-sm text-amber-400 underline">
+                    Manual download
+                  </a>
                 )}
               </div>
             ))}
             {!packageManager && (
-              <p className="brew-hint">
+              <p className="mt-3 text-sm text-gray-500">
                 Install a package manager to enable one-click installation:{" "}
-                <a href="https://brew.sh" target="_blank">
+                <a href="https://brew.sh" target="_blank" className="text-purple-400 underline">
                   Homebrew
                 </a>{" "}
                 (macOS/Linux),{" "}
-                <a href="https://learn.microsoft.com/en-us/windows/package-manager/winget/" target="_blank">
+                <a href="https://learn.microsoft.com/en-us/windows/package-manager/winget/" target="_blank" className="text-purple-400 underline">
                   winget
                 </a>{" "}
                 (Windows), or{" "}
-                <a href="https://chocolatey.org/install" target="_blank">
+                <a href="https://chocolatey.org/install" target="_blank" className="text-purple-400 underline">
                   Chocolatey
                 </a>{" "}
                 (Windows).
@@ -662,7 +679,7 @@ function App() {
             )}
             {packageManager && missingBinaries.length > 1 && (
               <button
-                className="btn small install-all-btn"
+                className="mt-4 w-full rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors disabled:opacity-40"
                 onClick={async () => {
                   for (const [name] of missingBinaries) {
                     await installDep(name);
@@ -676,28 +693,33 @@ function App() {
           </div>
         )}
 
-        <div className="mode-cards">
+        {/* ─── Mode cards ──────────────────────────────── */}
+        <div className="flex w-full max-w-2xl gap-5">
           <button
-            className="mode-card"
+            className="flex-1 flex flex-col items-center gap-3 rounded-xl border border-[#2a2a4a] bg-[#1a1a2e] p-8 transition-all hover:bg-[#222240] hover:border-purple-500 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
             onClick={() => {
               setMode("video");
               loadPresets();
             }}
             disabled={!binaries["HandBrakeCLI"]}
           >
-            <span className="mode-icon">&#127916;</span>
-            <span className="mode-label">Compress Video</span>
-            <span className="mode-desc">HandBrakeCLI presets</span>
+            <span className="text-5xl">🎬</span>
+            <span className="text-lg font-semibold text-gray-200">Compress Video</span>
+            <span className="text-sm text-gray-500">HandBrakeCLI presets</span>
           </button>
 
-          <button className="mode-card" onClick={() => setMode("audio")} disabled={!binaries["ffmpeg"]}>
-            <span className="mode-icon">&#127925;</span>
-            <span className="mode-label">Compress Audio</span>
-            <span className="mode-desc">ffmpeg bitrate control</span>
+          <button
+            className="flex-1 flex flex-col items-center gap-3 rounded-xl border border-[#2a2a4a] bg-[#1a1a2e] p-8 transition-all hover:bg-[#222240] hover:border-purple-500 hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => setMode("audio")}
+            disabled={!binaries["ffmpeg"]}
+          >
+            <span className="text-5xl">🎵</span>
+            <span className="text-lg font-semibold text-gray-200">Compress Audio</span>
+            <span className="text-sm text-gray-500">ffmpeg bitrate control</span>
           </button>
         </div>
 
-        <p className="drop-hint">or drag &amp; drop files anywhere</p>
+        <p className="mt-8 text-sm text-gray-600">or drag &amp; drop files anywhere</p>
       </main>
     );
   }
