@@ -113,7 +113,7 @@ if [ -n "${CI:-}" ]; then
 else
   # Interactive: commit + tag
   git add "$ROOT/package.json" "$ROOT/src-tauri/tauri.conf.json" "$ROOT/src-tauri/Cargo.toml"
-  git commit -m "chore(release): $NEW [skip ci]"
+  git commit -m "chore(release): $NEW"
   git tag "v$NEW"
   echo "✓ v$NEW — now run: git push origin master --follow-tags"
 fi
