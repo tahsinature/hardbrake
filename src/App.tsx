@@ -6,6 +6,7 @@ import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { getVersion } from "@tauri-apps/api/app";
 import "./App.css";
+import UpdateCorner from "./components/UpdateCorner";
 
 type Mode = "home" | "video" | "audio";
 type BinaryStatus = Record<string, boolean | string>;
@@ -553,54 +554,32 @@ function App() {
 
   if (mode === "home") {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#0f0f0f] px-8 py-16">
+      <main className="relative flex min-h-screen flex-col items-center justify-center bg-[#0f0f0f] px-8 py-16">
         {dragOverlay}
         {dragErrorToast}
+
+        {/* ─── Update corner ─────────────────────────── */}
+        <UpdateCorner
+          updateAvailable={updateAvailable}
+          isUpdating={isUpdating}
+          updateProgress={updateProgress}
+          isCheckingUpdate={isCheckingUpdate}
+          updateCheckResult={updateCheckResult}
+          onUpdate={doUpdate}
+          onDismiss={() => setUpdateAvailable(null)}
+          onCheck={checkForUpdates}
+        />
+
+        {/* ─── Version (corner) ─────────────────────────── */}
+        {appVersion && <span className="absolute bottom-4 left-5 text-[11px] text-gray-700">v{appVersion}</span>}
 
         {/* ─── Hero ─────────────────────────────────────── */}
         <div className="flex flex-col items-center gap-4 mb-10">
           <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">HardBrake</h1>
           <div className="flex items-center gap-3">
-            <p className="text-lg text-gray-400">Video &amp; Audio Compression</p>
-            {appVersion && <span className="rounded-md border border-gray-600 bg-transparent px-2.5 py-0.5 text-sm font-medium text-gray-400">v{appVersion}</span>}
+            <p className="text-lg text-gray-400">Media Compression, Stupid Simple</p>
           </div>
         </div>
-
-        {/* ─── Update available banner ─────────────────── */}
-        {updateAvailable && !isUpdating && (
-          <div className="w-full max-w-lg rounded-xl border border-purple-500/30 bg-purple-500/10 p-5 mb-8 text-left">
-            <p className="text-base text-gray-200 mb-4">
-              <strong>Update available:</strong> v{appVersion} → v{updateAvailable.version}
-            </p>
-            <div className="flex gap-3">
-              <button className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-semibold text-white hover:bg-purple-500 transition-colors" onClick={doUpdate}>
-                Update &amp; Restart
-              </button>
-              <button className="rounded-lg border border-gray-600 bg-transparent px-4 py-2 text-sm text-gray-400 hover:bg-white/8 transition-colors" onClick={() => setUpdateAvailable(null)}>
-                Later
-              </button>
-            </div>
-          </div>
-        )}
-        {isUpdating && (
-          <div className="w-full max-w-lg rounded-xl border border-purple-500/20 bg-purple-500/8 p-5 mb-8">
-            <p className="text-base text-gray-400">{updateProgress || "Updating..."}</p>
-          </div>
-        )}
-
-        {/* ─── Check for updates ───────────────────────── */}
-        {!updateAvailable && !isUpdating && (
-          <div className="flex flex-col items-center gap-3 mb-8">
-            <button
-              className="rounded-lg border border-gray-600 bg-transparent px-5 py-2 text-sm text-gray-300 hover:bg-white/8 hover:border-gray-500 transition-colors disabled:opacity-40"
-              onClick={checkForUpdates}
-              disabled={isCheckingUpdate}
-            >
-              {isCheckingUpdate ? "Checking..." : "Check for Updates"}
-            </button>
-            {updateCheckResult && <span className="text-sm text-gray-500">{updateCheckResult}</span>}
-          </div>
-        )}
 
         {/* ─── Installing overlay ───────────────────────── */}
         {installing && (
@@ -716,6 +695,12 @@ function App() {
             <span className="text-5xl">🎵</span>
             <span className="text-lg font-semibold text-gray-200">Compress Audio</span>
             <span className="text-sm text-gray-500">ffmpeg bitrate control</span>
+          </button>
+
+          <button className="flex-1 flex flex-col items-center gap-3 rounded-xl border border-[#2a2a4a] bg-[#1a1a2e] p-8 opacity-40 cursor-not-allowed relative" disabled>
+            <span className="text-5xl">🖼️</span>
+            <span className="text-lg font-semibold text-gray-200">Compress Picture</span>
+            <span className="text-sm text-gray-500">Coming soon</span>
           </button>
         </div>
 
