@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Command } from "@tauri-apps/plugin-shell";
 import { listen } from "@tauri-apps/api/event";
 import { open } from "@tauri-apps/plugin-dialog";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 import "./App.css";
 
 type Mode = "home" | "video" | "audio";
@@ -64,6 +66,11 @@ function App() {
   const [installing, setInstalling] = useState<string | null>(null); // which dep is being installed
   const [installLogs, setInstallLogs] = useState<string[]>([]);
   const [installError, setInstallError] = useState<string | null>(null);
+
+  // Update state
+  const [updateAvailable, setUpdateAvailable] = useState<{ version: string; body: string } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState("");
 
   // Track the active sidecar child so we can kill it if needed
   const activeChild = useRef<Awaited<ReturnType<Command<string>["spawn"]>> | null>(null);
@@ -165,6 +172,50 @@ function App() {
   useEffect(() => {
     recheckBinaries();
   }, [recheckBinaries]);
+
+  // ─── Check for updates on mount ────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        const update = await check();
+        if (update) {
+          setUpdateAvailable({
+            version: update.version,
+            body: update.body ?? "",
+          });
+        }
+      } catch (e) {
+        console.error("Update check failed:", e);
+      }
+    })();
+  }, []);
+
+  const doUpdate = useCallback(async () => {
+    try {
+      setIsUpdating(true);
+      setUpdateProgress("Checking...");
+      const update = await check();
+      if (!update) {
+        setIsUpdating(false);
+        setUpdateAvailable(null);
+        return;
+      }
+      setUpdateProgress("Downloading...");
+      await update.downloadAndInstall((progress) => {
+        if (progress.event === "Started" && progress.data.contentLength) {
+          setUpdateProgress(`Downloading (${(progress.data.contentLength / 1024 / 1024).toFixed(1)} MB)...`);
+        } else if (progress.event === "Finished") {
+          setUpdateProgress("Installing...");
+        }
+      });
+      setUpdateProgress("Restarting...");
+      await relaunch();
+    } catch (e: any) {
+      console.error("Update failed:", e);
+      setIsUpdating(false);
+      setUpdateProgress("");
+    }
+  }, []);
 
   // ─── Install a dependency via Homebrew ──────────────────
   const installDep = useCallback(
@@ -470,6 +521,29 @@ function App() {
         {dragErrorToast}
         <h1 className="title">HardBrake</h1>
         <p className="subtitle">Video & Audio Compression</p>
+
+        {/* ─── Update available banner ─────────────────── */}
+        {updateAvailable && !isUpdating && (
+          <div className="update-banner">
+            <p>
+              <strong>Update available:</strong> v{updateAvailable.version}
+            </p>
+            {updateAvailable.body && <p className="update-notes">{updateAvailable.body}</p>}
+            <div className="update-actions">
+              <button className="btn small" onClick={doUpdate}>
+                Update &amp; Restart
+              </button>
+              <button className="btn small secondary" onClick={() => setUpdateAvailable(null)}>
+                Later
+              </button>
+            </div>
+          </div>
+        )}
+        {isUpdating && (
+          <div className="update-banner updating">
+            <p>{updateProgress || "Updating..."}</p>
+          </div>
+        )}
 
         {/* ─── Installing overlay ───────────────────────── */}
         {installing && (

@@ -14,17 +14,28 @@ permissions:
 
 jobs:
   # ──────────────────────────────────────────────
-  # macOS  (universal: arm64 + x86_64)
+  # Compute a short tag shared by all build jobs
+  # ──────────────────────────────────────────────
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - id: tag
+        run: echo "tag=dev-$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+  # ──────────────────────────────────────────────
+  # macOS  (arm64 + x86_64)
+  # tauri-action handles release + updater JSON
   # ──────────────────────────────────────────────
   build-macos:
+    needs: prepare
     runs-on: macos-latest
     strategy:
       matrix:
         include:
           - arch: aarch64-apple-darwin
-            bun_target: "" # native on arm64 runner
           - arch: x86_64-apple-darwin
-            bun_target: ""
     steps:
       - uses: actions/checkout@v4
 
@@ -54,31 +65,26 @@ jobs:
           bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
           chmod +x "gui/src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
 
-      - name: Build Tauri app
+      - name: Build Tauri app & publish to release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           projectPath: gui
+          tagName: ${{ needs.prepare.outputs.tag }}
+          releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
+          releaseBody: "Automated dev build from feat-tauri branch."
+          releaseDraft: false
+          prerelease: false
           args: --target ${{ matrix.arch }} --bundles app
-
-      - name: Zip .app bundle for distribution
-        run: |
-          cd gui/src-tauri/target/${{ matrix.arch }}/release/bundle/macos
-          zip -r HardBrake-${{ matrix.arch }}.zip HardBrake.app
-
-      - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: hardbrake-macos-${{ matrix.arch }}
-          path: gui/src-tauri/target/${{ matrix.arch }}/release/bundle/macos/HardBrake-${{ matrix.arch }}.zip
-          if-no-files-found: error
 
   # ──────────────────────────────────────────────
   # Windows  (x86_64)
   # ──────────────────────────────────────────────
   build-windows:
+    needs: prepare
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -109,28 +115,26 @@ jobs:
           mkdir -p gui/src-tauri/binaries
           bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-x86_64-pc-windows-msvc.exe"
 
-      - name: Build Tauri app
+      - name: Build Tauri app & publish to release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         with:
           projectPath: gui
+          tagName: ${{ needs.prepare.outputs.tag }}
+          releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
+          releaseBody: "Automated dev build from feat-tauri branch."
+          releaseDraft: false
+          prerelease: false
           args: --target x86_64-pc-windows-msvc
-
-      - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: hardbrake-windows-x86_64
-          path: |
-            gui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
-            gui/src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
-          if-no-files-found: error
 
   # ──────────────────────────────────────────────
   # Linux  (placeholder — uncomment when ready)
   # ──────────────────────────────────────────────
   # build-linux:
+  #   needs: prepare
   #   runs-on: ubuntu-22.04
   #   steps:
   #     - uses: actions/checkout@v4
@@ -170,55 +174,16 @@ jobs:
   #         bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
   #         chmod +x "gui/src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
   #
-  #     - name: Build Tauri app
+  #     - name: Build Tauri app & publish to release
   #       uses: tauri-apps/tauri-action@v0
   #       env:
   #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         TAURI_SIGNING_PRIVATE_KEY: ""
+  #         TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+  #         TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
   #       with:
   #         projectPath: gui
-  #
-  #     - name: Upload Linux artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: hardbrake-linux-x86_64
-  #         path: |
-  #           gui/src-tauri/target/release/bundle/deb/*.deb
-  #           gui/src-tauri/target/release/bundle/appimage/*.AppImage
-  #         if-no-files-found: error
-
-  # ──────────────────────────────────────────────
-  # Collect all artifacts into a draft release
-  # ──────────────────────────────────────────────
-  release:
-    needs: [build-macos, build-windows] # add build-linux when ready
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/feat-tauri'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: false
-
-      - name: List artifacts
-        run: find artifacts -type f | head -50
-
-      - name: Get short SHA
-        id: sha
-        run: echo "short=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
-
-      - name: Create prerelease
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: dev-${{ steps.sha.outputs.short }}
-          name: "Dev Build ${{ steps.sha.outputs.short }}"
-          draft: false
-          prerelease: true
-          make_latest: false
-          files: artifacts/**/*
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         tagName: ${{ needs.prepare.outputs.tag }}
+  #         releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
+  #         releaseBody: "Automated dev build from feat-tauri branch."
+  #         releaseDraft: false
+  #         prerelease: false

@@ -54,6 +54,65 @@ body {
   margin-bottom: 2rem;
 }
 
+/* ─── Update banner ─────────────────────────────────────── */
+.update-banner {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.update-banner p {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.update-banner p:last-child {
+  margin-bottom: 0;
+}
+
+.update-banner .update-notes {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  white-space: pre-line;
+}
+
+.update-banner .update-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.update-banner .btn.small {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.update-banner .btn.small.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.update-banner .btn.small.secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.update-banner.updating {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.update-banner.updating p {
+  margin-bottom: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 h2 {
   font-size: 1.5rem;
   margin-bottom: 1.5rem;
