@@ -510,22 +510,19 @@ function App() {
                 <span>
                   &bull; <code>{name}</code> not found.
                 </span>
-                {packageManager ? (
+                {name === "HandBrakeCLI" ? (
+                  <button className="btn small install-btn" onClick={() => installDep(name)} disabled={!!installing}>
+                    Install from handbrake.fr
+                  </button>
+                ) : packageManager ? (
                   <button className="btn small install-btn" onClick={() => installDep(name)} disabled={!!installing}>
                     Install via {packageManager}
                   </button>
                 ) : (
                   <span className="dep-manual">
-                    {name === "HandBrakeCLI" && (
-                      <a href="https://handbrake.fr/downloads.php" target="_blank">
-                        Manual download
-                      </a>
-                    )}
-                    {name === "ffmpeg" && (
-                      <a href="https://ffmpeg.org/download.html" target="_blank">
-                        Manual download
-                      </a>
-                    )}
+                    <a href="https://ffmpeg.org/download.html" target="_blank">
+                      Manual download
+                    </a>
                   </span>
                 )}
               </div>
