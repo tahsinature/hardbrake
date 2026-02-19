@@ -35,9 +35,6 @@
     "split-file": "^2.3.0"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/exec": "^7.1.0",
-    "@semantic-release/git": "^10.0.1",
     "@tauri-apps/cli": "^2",
     "@types/bun": "latest",
     "@types/cli-progress": "^3.11.6",
@@ -46,7 +43,6 @@
     "@types/react-dom": "^19.1.6",
     "@types/split-file": "^2.3.3",
     "@vitejs/plugin-react": "^4.6.0",
-    "semantic-release": "^25.0.3",
     "typescript": "~5.8.3",
     "vite": "^7.0.4"
   }

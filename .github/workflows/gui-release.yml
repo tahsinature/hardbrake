@@ -1,11 +1,12 @@
 # Builds the Tauri desktop app (macOS + Windows) and publishes
 # .dmg / .app / .exe installers to a GitHub release.
-# Triggered by version tags created by semantic-release.
+# Triggered automatically by version.yml or by a manual tag push.
 name: GUI Desktop Release
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 # Cancel in-flight runs for the same ref
 concurrency:

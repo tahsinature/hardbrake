@@ -1,8 +1,7 @@
-# Runs semantic-release on push to master. Analyzes conventional
-# commits to determine the next version, updates package.json /
-# tauri.conf.json / Cargo.toml, generates CHANGELOG.md, creates
-# a git tag + GitHub release. The tag then triggers gui-release
-# and cli-release workflows.
+# Analyzes conventional commits on push to master to determine
+# the next version. Bumps package.json / tauri.conf.json /
+# Cargo.toml, creates a git tag + GitHub release, then triggers
+# the gui-release and cli-release workflows.
 name: Version & Release
 
 on:
@@ -16,32 +15,50 @@ concurrency:
 
 permissions:
   contents: write
-  issues: write
-  pull-requests: write
+  actions: write # needed for gh workflow run
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    # Skip commits made by semantic-release itself
+    # Skip commits made by this workflow
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
 
-      - name: Install Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Bump version
+        id: bump
+        run: ./scripts/bump
 
-      - name: Install dependencies
-        run: bun install
+      - name: Push commit & tag
+        if: steps.bump.outputs.version != ''
+        run: |
+          git push origin master
+          git push origin "v${{ steps.bump.outputs.version }}"
 
-      - name: Run semantic-release
-        run: npx semantic-release
+      - name: Create GitHub release
+        if: steps.bump.outputs.version != ''
+        run: |
+          gh release create "v${{ steps.bump.outputs.version }}" \
+            --title "v${{ steps.bump.outputs.version }}" \
+            --notes "${{ steps.bump.outputs.notes }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger GUI release
+        if: steps.bump.outputs.version != ''
+        run: gh workflow run gui-release.yml --ref "v${{ steps.bump.outputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger CLI release
+        if: steps.bump.outputs.version != ''
+        run: gh workflow run cli-release.yml --ref "v${{ steps.bump.outputs.version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

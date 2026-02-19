@@ -1,12 +1,13 @@
 # Compiles standalone CLI binaries (no Bun runtime needed) for
 # macOS arm64, macOS x64, and Linux x64, then uploads them as
 # tarballs to a GitHub release.
-# Triggered by version tags created by semantic-release.
+# Triggered automatically by version.yml or by a manual tag push.
 name: CLI Binary Release
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
