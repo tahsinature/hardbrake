@@ -78,7 +78,7 @@ jobs:
           releaseBody: "Automated dev build from feat-tauri branch."
           releaseDraft: false
           prerelease: false
-          args: --target ${{ matrix.arch }} --bundles app
+          args: --target ${{ matrix.arch }} --bundles app,dmg
 
   # ──────────────────────────────────────────────
   # Windows  (x86_64)

@@ -71,6 +71,8 @@ function App() {
   const [updateAvailable, setUpdateAvailable] = useState<{ version: string; body: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateProgress, setUpdateProgress] = useState("");
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+  const [updateCheckResult, setUpdateCheckResult] = useState<string | null>(null);
 
   // Track the active sidecar child so we can kill it if needed
   const activeChild = useRef<Awaited<ReturnType<Command<string>["spawn"]>> | null>(null);
@@ -188,6 +190,29 @@ function App() {
         console.error("Update check failed:", e);
       }
     })();
+  }, []);
+
+  const checkForUpdates = useCallback(async () => {
+    try {
+      setIsCheckingUpdate(true);
+      setUpdateCheckResult(null);
+      const update = await check();
+      if (update) {
+        setUpdateAvailable({
+          version: update.version,
+          body: update.body ?? "",
+        });
+      } else {
+        setUpdateCheckResult("You're on the latest version!");
+        setTimeout(() => setUpdateCheckResult(null), 4000);
+      }
+    } catch (e) {
+      console.error("Update check failed:", e);
+      setUpdateCheckResult("Failed to check for updates.");
+      setTimeout(() => setUpdateCheckResult(null), 4000);
+    } finally {
+      setIsCheckingUpdate(false);
+    }
   }, []);
 
   const doUpdate = useCallback(async () => {
@@ -542,6 +567,16 @@ function App() {
         {isUpdating && (
           <div className="update-banner updating">
             <p>{updateProgress || "Updating..."}</p>
+          </div>
+        )}
+
+        {/* ─── Check for updates button ────────────────── */}
+        {!updateAvailable && !isUpdating && (
+          <div className="check-update-row">
+            <button className="btn small secondary" onClick={checkForUpdates} disabled={isCheckingUpdate}>
+              {isCheckingUpdate ? "Checking..." : "Check for Updates"}
+            </button>
+            {updateCheckResult && <span className="update-check-result">{updateCheckResult}</span>}
           </div>
         )}
 
