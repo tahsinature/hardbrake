@@ -571,7 +571,12 @@ function App() {
         />
 
         {/* ─── Version (corner) ─────────────────────────── */}
-        {appVersion && <span className="absolute bottom-4 left-5 text-[11px] text-gray-700">v{appVersion}</span>}
+        {appVersion && (
+          <span className={`absolute bottom-4 left-5 text-[11px] ${import.meta.env.DEV ? "text-red-500" : "text-gray-700"}`}>
+            v{appVersion}
+            {import.meta.env.DEV && " · dev"}
+          </span>
+        )}
 
         {/* ─── Hero ─────────────────────────────────────── */}
         <div className="flex flex-col items-center gap-4 mb-10">
