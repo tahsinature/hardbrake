@@ -580,6 +580,7 @@ function App() {
 
         {/* ─── Hero ─────────────────────────────────────── */}
         <div className="flex flex-col items-center gap-4 mb-10">
+          <img src="/logo-white.svg" alt="HardBrake" className="w-20 h-20 mb-2" />
           <h1 className="text-6xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">HardBrake</h1>
           <div className="flex items-center gap-3">
             <p className="text-lg text-gray-400">Media Compression, Stupid Simple</p>
