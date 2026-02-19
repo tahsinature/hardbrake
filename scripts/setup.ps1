@@ -104,7 +104,7 @@ Pop-Location
 Write-Step "Building sidecar binary..."
 Push-Location $rootDir
 
-$binDir = "$rootDir\gui\src-tauri\binaries"
+$binDir = "$rootDir\src-tauri\binaries"
 if (-not (Test-Path $binDir)) { New-Item -ItemType Directory -Path $binDir -Force | Out-Null }
 
 # Detect architecture
@@ -113,20 +113,20 @@ $triple = "$arch-pc-windows-msvc"
 $output = "$binDir\hardbrake-core-$triple.exe"
 
 Write-Host "  Target: $triple" -ForegroundColor Gray
-bun build src/bridge.ts --compile --outfile $output
+bun build cli/bridge.ts --compile --outfile $output
 Write-Host "  Sidecar built: $output" -ForegroundColor Green
 Pop-Location
 
 # ─── 8. Build Tauri app ──────────────────────────────────────────
 Write-Step "Building HardBrake desktop app..."
-Push-Location "$rootDir\gui"
+Push-Location $rootDir
 npm run tauri build
 Pop-Location
 
 Write-Step "Done!"
 Write-Host ""
 Write-Host "  Build output:" -ForegroundColor Green
-Write-Host "    $rootDir\gui\src-tauri\target\release\bundle\" -ForegroundColor Yellow
+Write-Host "    $rootDir\src-tauri\target\release\bundle\" -ForegroundColor Yellow
 Write-Host ""
 Write-Host "  Look for .msi and .exe installers in the bundle folder." -ForegroundColor Gray
 Write-Host ""

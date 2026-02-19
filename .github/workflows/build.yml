@@ -2,7 +2,7 @@ name: Build & Release
 
 on:
   push:
-    branches: [feat-tauri]
+    branches: [master]
 
 # Cancel in-flight runs for the same branch
 concurrency:
@@ -52,18 +52,14 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install root dependencies
-        run: bun install
-
-      - name: Install GUI dependencies
-        working-directory: gui
+      - name: Install dependencies
         run: bun install
 
       - name: Build sidecar (hardbrake-core)
         run: |
-          mkdir -p gui/src-tauri/binaries
-          bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
-          chmod +x "gui/src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
+          mkdir -p src-tauri/binaries
+          bun build cli/bridge.ts --compile --outfile "src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
+          chmod +x "src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
 
       - name: Build Tauri app & publish to release
         uses: tauri-apps/tauri-action@v0
@@ -72,10 +68,9 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          projectPath: gui
           tagName: ${{ needs.prepare.outputs.tag }}
           releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
-          releaseBody: "Automated dev build from feat-tauri branch."
+          releaseBody: "Automated dev build from master branch."
           releaseDraft: false
           prerelease: false
           args: --target ${{ matrix.arch }} --bundles app,dmg
@@ -102,18 +97,14 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install root dependencies
-        run: bun install
-
-      - name: Install GUI dependencies
-        working-directory: gui
+      - name: Install dependencies
         run: bun install
 
       - name: Build sidecar (hardbrake-core)
         shell: bash
         run: |
-          mkdir -p gui/src-tauri/binaries
-          bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-x86_64-pc-windows-msvc.exe"
+          mkdir -p src-tauri/binaries
+          bun build cli/bridge.ts --compile --outfile "src-tauri/binaries/hardbrake-core-x86_64-pc-windows-msvc.exe"
 
       - name: Build Tauri app & publish to release
         uses: tauri-apps/tauri-action@v0
@@ -122,10 +113,9 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          projectPath: gui
           tagName: ${{ needs.prepare.outputs.tag }}
           releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
-          releaseBody: "Automated dev build from feat-tauri branch."
+          releaseBody: "Automated dev build from master branch."
           releaseDraft: false
           prerelease: false
           args: --target x86_64-pc-windows-msvc
@@ -161,18 +151,14 @@ jobs:
   #       with:
   #         node-version: 20
   #
-  #     - name: Install root dependencies
-  #       run: bun install
-  #
-  #     - name: Install GUI dependencies
-  #       working-directory: gui
+  #     - name: Install dependencies
   #       run: bun install
   #
   #     - name: Build sidecar (hardbrake-core)
   #       run: |
-  #         mkdir -p gui/src-tauri/binaries
-  #         bun build src/bridge.ts --compile --outfile "gui/src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
-  #         chmod +x "gui/src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
+  #         mkdir -p src-tauri/binaries
+  #         bun build cli/bridge.ts --compile --outfile "src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
+  #         chmod +x "src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
   #
   #     - name: Build Tauri app & publish to release
   #       uses: tauri-apps/tauri-action@v0
@@ -181,9 +167,8 @@ jobs:
   #         TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
   #         TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
   #       with:
-  #         projectPath: gui
   #         tagName: ${{ needs.prepare.outputs.tag }}
   #         releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
-  #         releaseBody: "Automated dev build from feat-tauri branch."
+  #         releaseBody: "Automated dev build from master branch."
   #         releaseDraft: false
   #         prerelease: false

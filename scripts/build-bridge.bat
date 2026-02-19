@@ -8,7 +8,7 @@ setlocal
 
 pushd "%~dp0.."
 set "ROOT_DIR=%CD%"
-set "BIN_DIR=%ROOT_DIR%\gui\src-tauri\binaries"
+set "BIN_DIR=%ROOT_DIR%\src-tauri\binaries"
 
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
 
@@ -20,11 +20,11 @@ set "TRIPLE=%ARCH%-pc-windows-msvc"
 set "OUTPUT=%BIN_DIR%\hardbrake-core-%TRIPLE%.exe"
 
 echo Building hardbrake-core sidecar...
-echo   Source:  src\bridge.ts
+echo   Source:  cli\bridge.ts
 echo   Output:  %OUTPUT%
 echo   Target:  %TRIPLE%
 
-call bun build src/bridge.ts --compile --outfile "%OUTPUT%"
+call bun build cli/bridge.ts --compile --outfile "%OUTPUT%"
 
 echo.
 echo Done! Sidecar binary: %OUTPUT%

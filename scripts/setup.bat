@@ -83,19 +83,13 @@ REM Resolve the project root (scripts\ is one level down)
 pushd "%~dp0.."
 set "ROOT_DIR=%CD%"
 
-call :step "Installing root dependencies..."
+call :step "Installing dependencies..."
 call bun install
-echo   Root deps installed.
-
-call :step "Installing GUI dependencies..."
-pushd gui
-call bun install
-popd
-echo   GUI deps installed.
+echo   Dependencies installed.
 
 REM ─── 6. Build sidecar ─────────────────────────────────────────
 call :step "Building sidecar binary..."
-set "BIN_DIR=%ROOT_DIR%\gui\src-tauri\binaries"
+set "BIN_DIR=%ROOT_DIR%\src-tauri\binaries"
 if not exist "%BIN_DIR%" mkdir "%BIN_DIR%"
 
 REM Detect architecture
@@ -106,19 +100,17 @@ set "TRIPLE=%ARCH%-pc-windows-msvc"
 set "OUTPUT=%BIN_DIR%\hardbrake-core-%TRIPLE%.exe"
 
 echo   Target: %TRIPLE%
-call bun build src/bridge.ts --compile --outfile "%OUTPUT%"
+call bun build cli/bridge.ts --compile --outfile "%OUTPUT%"
 echo   Sidecar built: %OUTPUT%
 
 REM ─── 7. Build Tauri app ───────────────────────────────────────
 call :step "Building HardBrake desktop app..."
-pushd gui
 call bun run tauri build
-popd
 
 call :step "Done!"
 echo.
 echo   Build output:
-echo     %ROOT_DIR%\gui\src-tauri\target\release\bundle\
+echo     %ROOT_DIR%\src-tauri\target\release\bundle\
 echo.
 echo   Look for .msi and .exe installers in the bundle folder.
 echo.

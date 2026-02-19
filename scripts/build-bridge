@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build the hardbrake-core sidecar binary for the current platform.
-# The compiled binary is placed in gui/src-tauri/binaries/ with the
+# The compiled binary is placed in src-tauri/binaries/ with the
 # Tauri-required target-triple suffix.
 #
 # Usage: ./scripts/build-bridge
@@ -11,7 +11,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-BINARIES_DIR="$ROOT_DIR/gui/src-tauri/binaries"
+BINARIES_DIR="$ROOT_DIR/src-tauri/binaries"
 
 # Detect target triple (same convention Tauri uses)
 ARCH="$(uname -m)"
@@ -39,12 +39,12 @@ mkdir -p "$BINARIES_DIR"
 OUTPUT="$BINARIES_DIR/hardbrake-core-${TARGET_TRIPLE}${EXE_SUFFIX}"
 
 echo "Building hardbrake-core sidecar..."
-echo "  Source:  src/bridge.ts"
+echo "  Source:  cli/bridge.ts"
 echo "  Output:  $OUTPUT"
 echo "  Target:  $TARGET_TRIPLE"
 
 cd "$ROOT_DIR"
-bun build src/bridge.ts --compile --outfile "$OUTPUT"
+bun build cli/bridge.ts --compile --outfile "$OUTPUT"
 
 chmod +x "$OUTPUT" 2>/dev/null || true
 

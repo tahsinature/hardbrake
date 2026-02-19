@@ -145,8 +145,8 @@ playground
 
 # ---- Sidecar binaries ----
 # Platform-compiled sidecars (rebuilt per machine)
-gui/src-tauri/binaries/hardbrake-core-*
+src-tauri/binaries/hardbrake-core-*
 
 # ---- Frontend build output ----
-gui/dist/
-gui/dist-ssr/
+dist/
+dist-ssr/

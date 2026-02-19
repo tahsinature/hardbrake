@@ -167,15 +167,10 @@ else
 fi
 
 # ─── 7. Install project dependencies ─────────────────────────────
-step "Installing root dependencies..."
+step "Installing dependencies..."
 cd "$ROOT_DIR"
 bun install
-ok "Root deps installed."
-
-step "Installing GUI dependencies..."
-cd "$ROOT_DIR/gui"
-npm install
-ok "GUI deps installed."
+ok "Dependencies installed."
 
 # ─── 8. Build sidecar ────────────────────────────────────────────
 step "Building sidecar binary..."
@@ -185,18 +180,18 @@ ok "Sidecar built."
 
 # ─── 9. Build Tauri app ──────────────────────────────────────────
 step "Building HardBrake desktop app..."
-cd "$ROOT_DIR/gui"
+cd "$ROOT_DIR"
 npm run tauri build
 
 step "Done!"
 echo ""
 if [[ "$PLATFORM" == "macOS" ]]; then
   echo -e "  ${GREEN}Build output:${NC}"
-  echo -e "  ${YELLOW}$ROOT_DIR/gui/src-tauri/target/release/bundle/macos/HardBrake.app${NC}"
-  echo -e "  ${YELLOW}$ROOT_DIR/gui/src-tauri/target/release/bundle/dmg/HardBrake_*.dmg${NC}"
+  echo -e "  ${YELLOW}$ROOT_DIR/src-tauri/target/release/bundle/macos/HardBrake.app${NC}"
+  echo -e "  ${YELLOW}$ROOT_DIR/src-tauri/target/release/bundle/dmg/HardBrake_*.dmg${NC}"
 else
   echo -e "  ${GREEN}Build output:${NC}"
-  echo -e "  ${YELLOW}$ROOT_DIR/gui/src-tauri/target/release/bundle/deb/${NC}"
-  echo -e "  ${YELLOW}$ROOT_DIR/gui/src-tauri/target/release/bundle/appimage/${NC}"
+  echo -e "  ${YELLOW}$ROOT_DIR/src-tauri/target/release/bundle/deb/${NC}"
+  echo -e "  ${YELLOW}$ROOT_DIR/src-tauri/target/release/bundle/appimage/${NC}"
 fi
 echo ""
