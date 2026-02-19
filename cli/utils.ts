@@ -1,6 +1,12 @@
 import fs from "fs";
 import readline from "readline";
+import path from "path";
 import { spawn, spawnSync } from "child_process";
+
+export const IS_WINDOWS = process.platform === "win32";
+export const IS_MAC = process.platform === "darwin";
+export const IS_LINUX = process.platform === "linux";
+export const PATH_SEP = IS_WINDOWS ? ";" : ":";
 
 export const runShellCommandAndReturnLine = (command: string, handleNewLine: (line: string) => void): Promise<void> => {
   return new Promise((resolve) => {
@@ -74,8 +80,48 @@ export const createDirOvewriteRecursive = (dir: string) => {
 };
 
 export const checkIfBinaryExists = (binary: string) => {
-  const lines = runShellCommandAndReturnOutput(`which ${binary}`);
-  return lines.length > 0;
+  return !!findBinaryPath(binary);
+};
+
+/**
+ * Find the full path of a binary by checking PATH directories.
+ * Works even in macOS .app bundle context where `which` may fail
+ * because PATH is minimal.
+ */
+export const findBinaryPath = (binary: string): string | null => {
+  // On Windows, try `where`; on Unix, try `which`
+  const lookupCmd = IS_WINDOWS ? "where" : "which";
+  try {
+    const { stdout, status } = spawnSync(lookupCmd, [binary], {
+      stdio: ["ignore", "pipe", "ignore"],
+      env: process.env,
+    });
+    if (status === 0) {
+      // `where` on Windows can return multiple lines; take the first
+      const p = stdout.toString().trim().split(/\r?\n/)[0];
+      if (p) return p;
+    }
+  } catch {
+    // ignore
+  }
+
+  // Fallback: check PATH directories manually (for .app/.exe bundle context)
+  const pathDirs = (process.env.PATH ?? "").split(PATH_SEP);
+  for (const dir of pathDirs) {
+    // On Windows, binaries may have .exe, .cmd, .bat suffixes
+    const candidates = IS_WINDOWS ? [`${binary}.exe`, `${binary}.cmd`, `${binary}.bat`, binary] : [binary];
+    for (const candidate of candidates) {
+      const fullPath = path.join(dir, candidate);
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isFile()) return fullPath;
+      } catch {
+        // not found in this dir
+      }
+    }
+  }
+
+  return null;
 };
 
 export const getFileSizeInMB = (filePath: string): number => {

@@ -22,7 +22,7 @@ export class File {
     this.originalFullPath = fullPath;
     this.dir = path.dirname(fullPath);
     this.baseName = path.basename(fullPath, path.extname(fullPath));
-    const timeNow = new Date().toISOString();
+    const timeNow = new Date().toISOString().replace(/[:.]/g, "-");
     const type = this.getType();
     this.alias = `${type}_${timeNow}_${crypto.randomUUID()}`;
   }

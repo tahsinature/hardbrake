@@ -1,10 +1,11 @@
 import { Operations, type CliOptions } from "./types";
-import { askBoolean, askChoose, askFilter, askPreset, showErrorAndExit, showNotice } from "./prompts";
+import { askBoolean, askChoose, askFilter, askInteger, askPreset, showErrorAndExit, showNotice } from "./prompts";
 import { compressVideo, compressAudio } from "./engine";
 import { checkRequiredBinaries } from "./check";
 import { File } from "./blueprints";
 import { selectFiles } from "./file-selection";
 import upgrade from "./upgrade";
+import { ProgressBar } from "./progress";
 
 process.on("uncaughtException", (error) => {
   // console.log(error.stack);
@@ -23,8 +24,21 @@ const audioCompress = async (cliOpt: CliOptions) => {
   if (files.length === 0) files = selectFiles(File.exts.audio);
 
   const bitrate = askFilter("Select a bitrate", ["16k", "32k", "64k", "128k", "256k", "320k"], { limit: 1, min: 1 });
+  const splitByMB = askInteger("Max file size in MB", 4);
 
-  await compressAudio(files, bitrate[0]);
+  const progressBar = new ProgressBar(files.length);
+
+  await compressAudio(files, bitrate[0], {
+    splitByMB,
+    onProgress: (percent, fileName) => {
+      progressBar.handleNewLine(percent, fileName);
+    },
+    onFileDone: () => {
+      progressBar.handleOneFileDone();
+    },
+  });
+
+  progressBar.stop();
 };
 
 const videoCompress = async (cliOpt: CliOptions) => {
@@ -36,7 +50,19 @@ const videoCompress = async (cliOpt: CliOptions) => {
   const preset = askPreset();
   const keepAudio = askBoolean("Do you want to keep the audio?", "true");
 
-  await compressVideo(files, preset, { keepAudio });
+  const progressBar = new ProgressBar(files.length);
+
+  await compressVideo(files, preset, {
+    keepAudio,
+    onProgress: (percent, fileName) => {
+      progressBar.handleNewLine(percent, fileName);
+    },
+    onFileDone: () => {
+      progressBar.handleOneFileDone();
+    },
+  });
+
+  progressBar.stop();
 
   const happyWithResults = askBoolean("Are you happy with the results?", "true");
   if (!happyWithResults) {

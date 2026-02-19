@@ -1,0 +1,174 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [master]
+
+# Cancel in-flight runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write # needed to create releases
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Compute a short tag shared by all build jobs
+  # ──────────────────────────────────────────────
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - id: tag
+        run: echo "tag=dev-$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+
+  # ──────────────────────────────────────────────
+  # macOS  (arm64 + x86_64)
+  # tauri-action handles release + updater JSON
+  # ──────────────────────────────────────────────
+  build-macos:
+    needs: prepare
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64-apple-darwin
+          - arch: x86_64-apple-darwin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.arch }}
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build sidecar (hardbrake-core)
+        run: |
+          mkdir -p src-tauri/binaries
+          bun build cli/bridge.ts --compile --outfile "src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
+          chmod +x "src-tauri/binaries/hardbrake-core-${{ matrix.arch }}"
+
+      - name: Build Tauri app & publish to release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ needs.prepare.outputs.tag }}
+          releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
+          releaseBody: "Automated dev build from master branch."
+          releaseDraft: false
+          prerelease: false
+          args: --target ${{ matrix.arch }} --bundles app,dmg
+
+  # ──────────────────────────────────────────────
+  # Windows  (x86_64)
+  # ──────────────────────────────────────────────
+  build-windows:
+    needs: prepare
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build sidecar (hardbrake-core)
+        shell: bash
+        run: |
+          mkdir -p src-tauri/binaries
+          bun build cli/bridge.ts --compile --outfile "src-tauri/binaries/hardbrake-core-x86_64-pc-windows-msvc.exe"
+
+      - name: Build Tauri app & publish to release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ needs.prepare.outputs.tag }}
+          releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
+          releaseBody: "Automated dev build from master branch."
+          releaseDraft: false
+          prerelease: false
+          args: --target x86_64-pc-windows-msvc
+
+  # ──────────────────────────────────────────────
+  # Linux  (placeholder — uncomment when ready)
+  # ──────────────────────────────────────────────
+  # build-linux:
+  #   needs: prepare
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - name: Install system deps
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get install -y \
+  #           libwebkit2gtk-4.1-dev \
+  #           libappindicator3-dev \
+  #           librsvg2-dev \
+  #           patchelf \
+  #           libgtk-3-dev \
+  #           libssl-dev
+  #
+  #     - name: Install Rust
+  #       uses: dtolnay/rust-toolchain@stable
+  #
+  #     - name: Install Bun
+  #       uses: oven-sh/setup-bun@v2
+  #
+  #     - name: Install Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #
+  #     - name: Install dependencies
+  #       run: bun install
+  #
+  #     - name: Build sidecar (hardbrake-core)
+  #       run: |
+  #         mkdir -p src-tauri/binaries
+  #         bun build cli/bridge.ts --compile --outfile "src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
+  #         chmod +x "src-tauri/binaries/hardbrake-core-x86_64-unknown-linux-gnu"
+  #
+  #     - name: Build Tauri app & publish to release
+  #       uses: tauri-apps/tauri-action@v0
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+  #         TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+  #       with:
+  #         tagName: ${{ needs.prepare.outputs.tag }}
+  #         releaseName: "Dev Build ${{ needs.prepare.outputs.tag }}"
+  #         releaseBody: "Automated dev build from master branch."
+  #         releaseDraft: false
+  #         prerelease: false

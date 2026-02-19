@@ -29,7 +29,7 @@ Usage
       version: { type: "boolean", shortFlag: "v" },
       files: { type: "string", shortFlag: "f", isMultiple: true, default: [] },
     },
-  }
+  },
 );
 
 const getFullPath = (givenPath: string) => {
@@ -45,7 +45,7 @@ const getFullPath = (givenPath: string) => {
 
 cli.flags.files = cli.flags.files.map(getFullPath);
 
-import hardbrake from "../src/index";
+import hardbrake from "../cli/index";
 await hardbrake({
   version: cli.pkg.version as string,
   filePaths: cli.flags.files,
