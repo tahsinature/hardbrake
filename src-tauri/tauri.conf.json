@@ -4,9 +4,9 @@
   "version": "2.5.6",
   "identifier": "com.hardbrake.desktop",
   "build": {
-    "beforeDevCommand": "bun run dev",
+    "beforeDevCommand": "bun run dev:frontend",
     "devUrl": "http://localhost:1420",
-    "beforeBuildCommand": "bun run build",
+    "beforeBuildCommand": "bun run build:frontend",
     "frontendDist": "../dist"
   },
   "app": {

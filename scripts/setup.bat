@@ -105,7 +105,7 @@ echo   Sidecar built: %OUTPUT%
 
 REM ─── 7. Build Tauri app ───────────────────────────────────────
 call :step "Building HardBrake desktop app..."
-call bun run tauri build
+call bun run build:desktop
 
 call :step "Done!"
 echo.

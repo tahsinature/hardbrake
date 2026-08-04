@@ -181,7 +181,7 @@ ok "Sidecar built."
 # ─── 9. Build Tauri app ──────────────────────────────────────────
 step "Building HardBrake desktop app..."
 cd "$ROOT_DIR"
-npm run tauri build
+npm run build:desktop
 
 step "Done!"
 echo ""

@@ -120,7 +120,7 @@ Pop-Location
 # ─── 8. Build Tauri app ──────────────────────────────────────────
 Write-Step "Building HardBrake desktop app..."
 Push-Location $rootDir
-npm run tauri build
+npm run build:desktop
 Pop-Location
 
 Write-Step "Done!"

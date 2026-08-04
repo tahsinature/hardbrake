@@ -12,12 +12,13 @@
     "hardbrake": "bin/hardbrake"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri",
-    "start": "bun run cli/index.ts",
-    "bump": "./scripts/bump"
+    "dev:frontend": "vite",
+    "dev:cli": "bun run cli/index.ts",
+    "dev:desktop": "tauri dev",
+    "build:frontend": "tsc && vite build",
+    "build:desktop": "tauri build",
+    "preview:frontend": "vite preview",
+    "release:bump": "./scripts/bump"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
